@@ -1,10 +1,48 @@
 ---
 title: "Prediction of Presidents"
-
-echo: false
+title-size: small
+format: html
+execute:
+  echo: false
 ---
 
-<h4> Data pre-processing </h4> 
+<div style="text-align: justify"> 
+
+<h4> Abstract </h4> 
+<hr> 
+
+
+<h4> Introduction </h4> 
+<hr> 
+
+
+<h4> Literature Review </h4> 
+<hr> 
+
+<b><u> SONA  </b></u>
+
+<b><u> Machine learning </b></u>
+
+
+<h4> Data </h4>
+<hr>
+
+<b><u> Tokenization </b></u>
+
+<b><u> Pre-processing </b></u>
+
+
+<h4> Methods </h4>
+<hr>
+
+<b><u> Classification Tree (CT) </b></u>
+
+<b><u> Feed-forward Neural Network (NN) </b></u>
+
+<b><u> Convolutional Neural Network (CNN) </b></u>
+
+<b><u> Model performance metrics </b></u>
+
 
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -107,7 +145,8 @@ sona <- sona %>% select(speech, year, president, date)
 
 ```
 
-
+<h4> Exploratory Data Analysis </h4> 
+<hr> 
 
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,6 +181,8 @@ GGpresident_num_speeches <- ggplot(president_num_speeches, aes(x = president, y 
 GGpresident_num_speeches
 
 ```
+
+
 
 ```{r}
 # create sentence-tokenized dataset
@@ -261,12 +302,10 @@ president_av_sentence_length_after
 
 
 ```
-```{r}
+```{r, .hide, message=FALSE}
 
-# define the number of colours from RdGy palette
-num_colors <- 10
 # create custom RdGy colour palette
-suppressWarnings({rdgy_palette <- brewer.pal(num_colors, "RdGy")})
+suppressWarnings({rdgy_palette <- brewer.pal(10, "RdGy")})
 
 # plot most frequent unigram (one word) used across all presidents
 freq_words_allspeeches <- tidyWord_sona %>% count(word, sort = TRUE) %>%
@@ -285,15 +324,12 @@ freq_words_allspeeches <- tidyWord_sona %>% count(word, sort = TRUE) %>%
                                               axis.text.x = element_text(family = "Andale Mono", face="bold", size=11),
                                               axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
                                               guides(fill = guide_legend(nrow = 1))
-freq_words_allspeeches
-```
 
-```{r}
 # define the number of colours from RdGy palette
 num_colors <- 12
 # create custom RdGy colour palette
 suppressWarnings({rdgy_palette <- brewer.pal(num_colors, "RdGy")})
-suppressWarnings({rdgy_palette <- c(rdgy_palette[1:2], rdgy_palette[7, 8:11])})
+suppressWarnings({rdgy_palette <- c(rdgy_palette[1:2], rdgy_palette[7], rdgy_palette[9:11])})
 
 tidyWord_sona$president <- factor(tidyWord_sona$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
 # plot most frequent unigram (one word) used across all presidents
@@ -320,7 +356,36 @@ freq_words_bypresident
 
 ```
 
+<h4> Exploratory Data Analysis </h4> 
+<hr> 
 
+```{r}
+
+
+```
+
+
+
+<h4> Results </h4> 
+<hr> 
+
+<h5> Overall model performance </h5>
+
+<b><u> Accuracy </b></u>
+
+<b><u> F1-score </b></u>
+
+<h5> Overall model performance </h5>
+
+
+<h4> Discussion and Conclusion </h4> 
+<hr> 
+
+
+<h4> References </h4> 
+<hr> 
+
+</div> 
 
 
 

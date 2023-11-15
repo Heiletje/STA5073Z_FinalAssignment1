@@ -4,6 +4,6 @@
     "href": "VZYHEI003.html",
     "title": "Prediction of Presidents",
     "section": "",
-    "text": "Data pre-processing\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSelecting by n\n\n\n\n\n\n\n\nWarning in brewer.pal(num_colors, \"RdGy\"): n too large, allowed maximum for palette RdGy is 11\nReturning the palette you asked for with that many colors\n\n\nSelecting by n"
+    "text": "Abstract\n\n\n\nIntroduction\n\n\n\nLiterature Review\n\n\n SONA \n Machine learning \n\nData\n\n\n Tokenization \n Pre-processing \n\nMethods\n\n\n Classification Tree (CT) \n Feed-forward Neural Network (NN) \n Convolutional Neural Network (CNN) \n Model performance metrics \n\nExploratory Data Analysis\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nExploratory Data Analysis\n\n\n\nResults\n\n\n\nOverall model performance\n\n Accuracy \n F1-score \n\nOverall model performance\n\n\nDiscussion and Conclusion\n\n\n\nReferences"
   }
 ]
