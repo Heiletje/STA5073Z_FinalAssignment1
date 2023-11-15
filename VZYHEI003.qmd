@@ -155,9 +155,9 @@ num_colors <- 10
 # create custom RdGy colour palette
 rdgy_palette <- brewer.pal(num_colors, "RdGy")
 
-# create a bar plot of presidents names and speech counts
+# create a bar plot of presidents names and sentence counts
 GGpresident_num_sentences <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
-                                    geom_bar(stat = "identity", fill = rdgy_palette[8]) +
+                                    geom_bar(stat = "identity", fill = rdgy_palette[10]) +
                                     labs(x = "President", y = "Number of sentences") + 
                                     theme_bw() + theme(legend.box = "horizontal",
                                     panel.grid = element_blank(),
@@ -185,9 +185,9 @@ num_colors <- 10
 # create custom RdGy colour palette
 rdgy_palette <- brewer.pal(num_colors, "RdGy")
 
-# create a bar plot of presidents names and speech counts
-president_av_sentence_length_before <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
-                                              geom_bar(stat = "identity", fill = rdgy_palette[10]) +
+# create a bar plot of presidents names and mean sentence length (before removing stop words/other cleaning)
+president_av_sentence_length_before <- ggplot(president_av_sentence_length_before, aes(x = president, y = av_sen_length)) +
+                                              geom_bar(stat = "identity", fill = rdgy_palette[8]) +
                                               labs(x = "President", y = "Mean sentence length (in words)") + 
                                               theme_bw() + theme(legend.box = "horizontal",
                                               panel.grid = element_blank(),
@@ -219,7 +219,7 @@ tidyWord_sona <- tidyWord_sona %>% filter(str_detect(word, "\\D"),              
                                                         'honourable', 'member', 'chairperson',
                                                         'south', 'africa', 'african', 'africans')) # remove common words in speech (custom stop word list)
 
-# commented out to make rendering time more efficient
+# commented out to make rendering time more efficient and not override data
 # tidySentence_sona_final <- tidyWord_sona %>% group_by(year, president,date, sentenceID) %>%
 #                            summarize(sentence = paste(word, collapse = " "))
 # write.csv(tidySentence_sona_final, "tidySentence_sona_final.csv", row.names=FALSE)
@@ -231,30 +231,35 @@ sona_sentences <- read.csv("tidySentence_sona_final.csv")
 
 ```{r}
 # calculate the average length of presidents' sentences (AFTER removal of stop-words)
-president_av_sentence_length <- tidySentences_sona %>% group_by(president) %>% select(president, sentence) %>%
-                                summarize(av_sen_length = floor(mean(nchar(sentence)))) 
-president_av_sentence_length$president <- factor(president_av_sentence_length$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+president_av_sentence_length_after <- sona_sentences %>% group_by(president) %>% select(president, sentence) %>%
+                                      summarize(av_sen_length = floor(mean(nchar(sentence)))) 
+president_av_sentence_length_after$president <- factor(president_av_sentence_length_after$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
 
 # define the number of colours from RdGy palette
 num_colors <- 10
 # create custom RdGy colour palette
 rdgy_palette <- brewer.pal(num_colors, "RdGy")
 
-# create a bar plot of presidents names and speech counts
-ggplot(president_av_sentence_length, aes(x = president, y = av_sen_length)) +
- geom_bar(stat = "identity", fill = rdgy_palette[10]) +
- labs(x = "President", y = "Mean sentence length (in words)") + 
-theme_bw() + theme(legend.box = "horizontal",
-                     panel.grid = element_blank(),
-                     legend.position="bottom", 
-                     axis.title = element_text(family = "Andale Mono", face="bold", size=13),
-                     legend.text = element_text(face="bold", size=6),
-                     legend.box.background = element_rect(colour = "black"),
-                     strip.text.x = element_text(size = 15, face = "bold"),
-                     plot.title = element_text(hjust = 0.5),
-                     axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
-                     axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
-  guides(fill = guide_legend(nrow = 1))
+# create a bar plot of presidents names and mean sentence length (after removing stop words/other cleaning)
+president_av_sentence_length_after <- ggplot(president_av_sentence_length_after, aes(x = president, y = av_sen_length)) +
+                                              geom_bar(stat = "identity", fill = rdgy_palette[9]) +
+                                              labs(x = "President", y = "Mean sentence length (in words)") + 
+                                              theme_bw() + theme(legend.box = "horizontal",
+                                              panel.grid = element_blank(),
+                                              legend.position="bottom", 
+                                              axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                              legend.text = element_text(face="bold", size=6),
+                                              legend.box.background = element_rect(colour = "black"),
+                                              strip.text.x = element_text(size = 15, face = "bold"),
+                                              plot.title = element_text(hjust = 0.5),
+                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                                              axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                              guides(fill = guide_legend(nrow = 1))
+president_av_sentence_length_after
+
 
 ```
+
+
+
 
