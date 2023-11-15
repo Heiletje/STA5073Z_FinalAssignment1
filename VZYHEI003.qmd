@@ -188,21 +188,13 @@ GGpresident_num_speeches
 # omit de Klerk and Motlanthe due to prior finding of few number of speeches
 sona4presidents <- sona %>% filter(president %in% c('Mandela', 'Mbeki', 'Zuma', 'Ramaphosa'))
 
-
-
-# sample sentence due prior finding of imbalance in number of sentences
-set.seed(5)
-sona_sentences_balanced <- sona_sentences_4presidents %>% 
-                           group_by(president) %>% slice_sample
-  
-
 # create sentence-tokenized dataset
-tidySentences_sona <- sona %>% unnest_tokens(output = sentence, input = speech, token = "sentences")  
+tidySentences_sona4presidents <- sona4presidents %>% unnest_tokens(output = sentence, input = speech, token = "sentences")  
 
 # create a dataframe with the president names and sentence counts
-president_num_sentences <- as.data.frame(table(tidySentences_sona$president))
+president_num_sentences <- as.data.frame(table(tidySentences_sona4presidents$president))
 colnames(president_num_sentences) <- c("president", "num_sentences")
-president_num_sentences$president <- factor(president_num_sentences$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+president_num_sentences$president <- factor(president_num_sentences$president, levels = c("Mandela", "Mbeki", "Zuma", "Ramaphosa"))
 
 # define the number of colours from RdGy palette
 num_colors <- 10
@@ -229,10 +221,10 @@ GGpresident_num_sentences
 ```
 
 ```{r}
-# calculate the average length of presidents' sentences (BEFORE removal of stop-words)
-president_av_sentence_length_before <- tidySentences_sona %>% group_by(president) %>% select(president, sentence) %>%
+# calculate the average length of presidents' sentences (before balancing data)
+president_av_sentence_length_before <- tidySentences_sona4presidents %>% group_by(president) %>% select(president, sentence) %>%
                                        summarize(av_sen_length = floor(mean(nchar(sentence)))) 
-president_av_sentence_length_before$president <- factor(president_av_sentence_length_before$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+president_av_sentence_length_before$president <- factor(president_av_sentence_length_before$president, levels = c("Mandela", "Mbeki", "Zuma", "Ramaphosa"))
 
 # define the number of colours from RdGy palette
 num_colors <- 10
@@ -259,9 +251,52 @@ president_av_sentence_length_before
 ```
 
 
+
+```{r}
+# necessary to find sentence-by-president sample due prior finding of imbalance in number of sentences (Mandela with very little compared to Zuma, for example)
+set.seed(5)
+tidySentences_sona4presidents_balanced <- tidySentences_sona4presidents %>% 
+                                          group_by(president) %>% slice_sample(n=1000) %>% ungroup() # sample 1000 random speeches
+# check
+table(tidySentences_sona4presidents_balanced$president) 
+
+
+
+
+
+# calculate the average length of presidents' sentences (after balancing data)
+president_av_sentence_length_after <- tidySentences_sona4presidents_balanced %>% group_by(president) %>% select(president, sentence) %>%
+                                       summarize(av_sen_length = floor(mean(nchar(sentence)))) 
+president_av_sentence_length_after$president <- factor(president_av_sentence_length_after$president, levels = c("Mandela", "Mbeki", "Zuma", "Ramaphosa"))
+
+# define the number of colours from RdGy palette
+num_colors <- 10
+# create custom RdGy colour palette
+rdgy_palette <- brewer.pal(num_colors, "RdGy")
+
+# create a bar plot of presidents names and mean sentence length (before removing stop words/other cleaning)
+president_av_sentence_length_after <- ggplot(president_av_sentence_length_after, aes(x = president, y = av_sen_length)) +
+                                              geom_bar(stat = "identity", fill = rdgy_palette[8]) +
+                                              labs(x = "President", y = "Mean sentence length (in words)") + 
+                                              theme_bw() + theme(legend.box = "horizontal",
+                                              panel.grid = element_blank(),
+                                              legend.position="bottom", 
+                                              axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                              legend.text = element_text(face="bold", size=6),
+                                              legend.box.background = element_rect(colour = "black"),
+                                              strip.text.x = element_text(size = 15, face = "bold"),
+                                              plot.title = element_text(hjust = 0.5),
+                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                                              axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                              guides(fill = guide_legend(nrow = 1))
+president_av_sentence_length_after
+
+```
+
+
 ```{r}
 # create word-tokenized dataset
-tidyWord_sona <- tidySentences_sona %>% mutate (sentenceID = row_number()) %>% 
+tidyWord_sona <- tidySentences_sona4presidents_balanced %>% mutate (sentenceID = row_number()) %>% 
                  unnest_tokens(output = word, input = sentence, token = "words")
 
 # clean dataset 
@@ -346,7 +381,7 @@ tidyWord_sona$president <- factor(tidyWord_sona$president, levels = c("deKlerk",
 # plot most frequent unigram (one word) used across all presidents
 freq_words_bypresident <- tidyWord_sona %>% count(president, word, sort = TRUE) %>%
                           group_by(president) %>%
-                          top_n(10) %>% ungroup() %>%
+                          top_n(20`) %>% ungroup() %>%
                           ggplot(aes(n, word, fill = president)) +
                           geom_col() +
                           scale_fill_manual(values = rdgy_palette) + 
@@ -374,7 +409,11 @@ freq_words_bypresident
 # create BoW model ~ using 100 most frequent words for the four aforementioned presidents
 
 
-
+# sample sentence due prior finding of imbalance in number of sentences
+set.seed(5)
+sona_sentences_balanced <- sona_sentences_4presidents %>% 
+                           group_by(president) %>% slice_sample
+  
 
 
 
