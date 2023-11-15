@@ -126,34 +126,18 @@ rdgy_palette <- brewer.pal(num_colors, "RdGy")
 GGpresident_num_speeches <- ggplot(president_num_speeches, aes(x = president, y = num_speeches)) +
                                    geom_bar(stat = "identity", fill = rdgy_palette[1]) +
                                    labs(x = "President", y = "Number of speeches") + 
- theme_bw() + theme(legend.box = "horizontal",
-                     panel.grid = element_blank(),
-                     legend.position="bottom", 
-                     axis.title = element_text(family = "Andale Mono", face="bold", size=13),
-                     legend.text = element_text(face="bold", size=6),
-                     legend.box.background = element_rect(colour = "black"),
-                     strip.text.x = element_text(size = 15, face = "bold"),
-                     plot.title = element_text(hjust = 0.5),
-                     axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
-                     axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
-  guides(fill = guide_legend(nrow = 1))
-
-
-GGpresident_num_sentences_before <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
-                                           geom_bar(stat = "identity", fill = rdgy_palette[8]) +
-                                           labs(x = "President", y = "Number of sentences") + 
-                                          theme_bw() + theme(legend.box = "horizontal",
-                                           panel.grid = element_blank(),
-                                    legend.position="bottom", 
-                                    axis.title = element_text(family = "Andale Mono", face="bold", size=13),
-                                    legend.text = element_text(face="bold", size=6),
-                                    legend.box.background = element_rect(colour = "black"),
-                                    strip.text.x = element_text(size = 15, face = "bold"),
-                                    plot.title = element_text(hjust = 0.5),
-                                    axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
-                                    axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
-                                    guides(fill = guide_legend(nrow = 1))
-GGpresident_num_sentences_before
+                                   theme_bw() + theme(legend.box = "horizontal",
+                                   panel.grid = element_blank(),
+                                   legend.position="bottom", 
+                                   axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                   legend.text = element_text(face="bold", size=6),
+                                   legend.box.background = element_rect(colour = "black"),
+                                   strip.text.x = element_text(size = 15, face = "bold"),
+                                   plot.title = element_text(hjust = 0.5),
+                                   axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                                   axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                   guides(fill = guide_legend(nrow = 1))
+GGpresident_num_speeches
 
 ```
 
@@ -172,7 +156,7 @@ num_colors <- 10
 rdgy_palette <- brewer.pal(num_colors, "RdGy")
 
 # create a bar plot of presidents names and speech counts
-GGpresident_num_sentences_after <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
+GGpresident_num_sentences <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
                                     geom_bar(stat = "identity", fill = rdgy_palette[8]) +
                                     labs(x = "President", y = "Number of sentences") + 
                                     theme_bw() + theme(legend.box = "horizontal",
@@ -186,7 +170,7 @@ GGpresident_num_sentences_after <- ggplot(president_num_sentences, aes(x = presi
                                     axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
                                     axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
                                     guides(fill = guide_legend(nrow = 1))
-GGpresident_num_sentences_after
+GGpresident_num_sentences
 
 ```
 
@@ -217,6 +201,21 @@ theme_bw() + theme(legend.box = "horizontal",
                      axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
   guides(fill = guide_legend(nrow = 1))
 
+president_av_sentence_length_before <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
+                                           geom_bar(stat = "identity", fill = rdgy_palette[8]) +
+                                           labs(x = "President", y = "Number of sentences") + 
+                                          theme_bw() + theme(legend.box = "horizontal",
+                                           panel.grid = element_blank(),
+                                    legend.position="bottom", 
+                                    axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                    legend.text = element_text(face="bold", size=6),
+                                    legend.box.background = element_rect(colour = "black"),
+                                    strip.text.x = element_text(size = 15, face = "bold"),
+                                    plot.title = element_text(hjust = 0.5),
+                                    axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                                    axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                    guides(fill = guide_legend(nrow = 1))
+GGpresident_num_sentences_before
 
 ```
 
