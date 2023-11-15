@@ -111,7 +111,7 @@ sona <- data.frame(filename = textFiles, speech = this_speech, stringsAsFactors 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # Data wrangling processes
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-# set seed for reproudible-research purposes
+# set seed for reproducible-research purposes
 set.seed(5)
 
 # extract year and president for each speech
@@ -185,6 +185,17 @@ GGpresident_num_speeches
 
 
 ```{r}
+# omit de Klerk and Motlanthe due to prior finding of few number of speeches
+sona4presidents <- sona %>% filter(president %in% c('Mandela', 'Mbeki', 'Zuma', 'Ramaphosa'))
+
+
+
+# sample sentence due prior finding of imbalance in number of sentences
+set.seed(5)
+sona_sentences_balanced <- sona_sentences_4presidents %>% 
+                           group_by(president) %>% slice_sample
+  
+
 # create sentence-tokenized dataset
 tidySentences_sona <- sona %>% unnest_tokens(output = sentence, input = speech, token = "sentences")  
 
@@ -263,9 +274,9 @@ tidyWord_sona <- tidyWord_sona %>% filter(str_detect(word, "\\D"),              
                                                         'south', 'africa', 'african', 'africans')) # remove common words in speech (custom stop word list)
 
 # commented out to make rendering time more efficient and not override data
-# tidySentence_sona_final <- tidyWord_sona %>% group_by(year, president,date, sentenceID) %>%
-#                            summarize(sentence = paste(word, collapse = " "))
-# write.csv(tidySentence_sona_final, "tidySentence_sona_final.csv", row.names=FALSE)
+tidySentence_sona_final <- tidyWord_sona %>% group_by(year, president,date, sentenceID) %>%
+                           summarize(sentence = paste(word, collapse = " "))
+write.csv(tidySentence_sona_final, "tidySentence_sona_final.csv", row.names=FALSE)
 
 sona_sentences <- read.csv("tidySentence_sona_final.csv")
 
@@ -356,10 +367,16 @@ freq_words_bypresident
 
 ```
 
-<h4> Exploratory Data Analysis </h4> 
-<hr> 
 
 ```{r}
+
+# use cleaned (e.g., removal of stop words, etc.) presidents' sentences for analysis purposes
+# create BoW model ~ using 100 most frequent words for the four aforementioned presidents
+
+
+
+
+
 
 
 ```
