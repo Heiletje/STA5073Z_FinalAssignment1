@@ -1,5 +1,7 @@
 ---
 title: "Prediction of Presidents"
+
+echo: false
 ---
 
 <h4> Data pre-processing </h4> 
@@ -9,7 +11,7 @@ title: "Prediction of Presidents"
 # Preliminaries - load relevant packages/lexicons and import data
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # load packages
-library(ggplot2) ; library(dplyr) ; suppressMessages(library(tidyverse)) ; library(tidytext) ; library(stringr) ; library(lubridate); library(textdata); library(keras); library(RColorBrewer)
+library(ggplot2) ; suppressMessages(library(dplyr)) ; suppressMessages(library(tidyverse)) ; library(tidytext) ; library(stringr) ; suppressMessages(library(lubridate)); library(textdata); suppressMessages(library(keras)); library(RColorBrewer)
 
 # create dictionary of .txt file names containing data 
 textFiles <- c('1994_pre_elections_deKlerk.txt',
@@ -250,7 +252,7 @@ president_av_sentence_length_after <- ggplot(president_av_sentence_length_after,
                                               axis.title = element_text(family = "Andale Mono", face="bold", size=13),
                                               legend.text = element_text(face="bold", size=6),
                                               legend.box.background = element_rect(colour = "black"),
-                                              strip.text.x = element_text(size = 15, face = "bold"),
+                                              strip.text.x = element_text(family = "Andale Mono",size = 15, face = "bold"),
                                               plot.title = element_text(hjust = 0.5),
                                               axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
                                               axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
@@ -259,6 +261,65 @@ president_av_sentence_length_after
 
 
 ```
+```{r}
+
+# define the number of colours from RdGy palette
+num_colors <- 10
+# create custom RdGy colour palette
+suppressWarnings({rdgy_palette <- brewer.pal(num_colors, "RdGy")})
+
+# plot most frequent unigram (one word) used across all presidents
+freq_words_allspeeches <- tidyWord_sona %>% count(word, sort = TRUE) %>%
+                          top_n(20) %>%
+                          mutate(word = reorder(word, n)) %>%
+                          ggplot(aes(n, word)) + geom_col(fill = rdgy_palette[10]) +
+                          labs(y = " ", x = "Number of times word appears") + 
+                          theme_bw() + theme(legend.box = "horizontal",
+                                              panel.grid = element_blank(),
+                                              legend.position="bottom", 
+                                              axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                              legend.text = element_text(face="bold", size=6),
+                                              legend.box.background = element_rect(colour = "black"),
+                                              strip.text.x = element_text(size = 15, face = "bold"),
+                                              plot.title = element_text(hjust = 0.5),
+                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=11),
+                                              axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                              guides(fill = guide_legend(nrow = 1))
+freq_words_allspeeches
+```
+
+```{r}
+# define the number of colours from RdGy palette
+num_colors <- 12
+# create custom RdGy colour palette
+suppressWarnings({rdgy_palette <- brewer.pal(num_colors, "RdGy")})
+suppressWarnings({rdgy_palette <- c(rdgy_palette[1:2], rdgy_palette[7, 8:11])})
+
+tidyWord_sona$president <- factor(tidyWord_sona$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+# plot most frequent unigram (one word) used across all presidents
+freq_words_bypresident <- tidyWord_sona %>% count(president, word, sort = TRUE) %>%
+                          group_by(president) %>%
+                          top_n(10) %>% ungroup() %>%
+                          ggplot(aes(n, word, fill = president)) +
+                          geom_col() +
+                          scale_fill_manual(values = rdgy_palette) + 
+                          facet_wrap(~president, scales = "free") +
+                          labs(y = " ", x = "Number of times word appears") + 
+                          theme_bw() + theme(legend.box = "horizontal",
+                                              panel.grid = element_blank(),
+                                              legend.position="none", 
+                                              axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                              legend.text = element_text(face="bold", size=6),
+                                              legend.box.background = element_rect(colour = "black"),
+                                              strip.text.x = element_text(family = "Andale Mono", size = 11, face = "bold"),
+                                              plot.title = element_text(hjust = 0.5),
+                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=9),
+                                              axis.text.y = element_text(family = "Andale Mono", face="bold", size=9)) +
+                                              guides(fill = guide_legend(nrow = 1))
+freq_words_bypresident
+
+```
+
 
 
 
