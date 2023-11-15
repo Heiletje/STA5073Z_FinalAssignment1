@@ -258,48 +258,13 @@ set.seed(5)
 tidySentences_sona4presidents_balanced <- tidySentences_sona4presidents %>% 
                                           group_by(president) %>% slice_sample(n=1000) %>% ungroup() # sample 1000 random speeches
 # check
-table(tidySentences_sona4presidents_balanced$president) 
+# table(tidySentences_sona4presidents_balanced$president) 
 
-
-
-
-
-# calculate the average length of presidents' sentences (after balancing data)
-president_av_sentence_length_after <- tidySentences_sona4presidents_balanced %>% group_by(president) %>% select(president, sentence) %>%
-                                       summarize(av_sen_length = floor(mean(nchar(sentence)))) 
-president_av_sentence_length_after$president <- factor(president_av_sentence_length_after$president, levels = c("Mandela", "Mbeki", "Zuma", "Ramaphosa"))
-
-# define the number of colours from RdGy palette
-num_colors <- 10
-# create custom RdGy colour palette
-rdgy_palette <- brewer.pal(num_colors, "RdGy")
-
-# create a bar plot of presidents names and mean sentence length (before removing stop words/other cleaning)
-president_av_sentence_length_after <- ggplot(president_av_sentence_length_after, aes(x = president, y = av_sen_length)) +
-                                              geom_bar(stat = "identity", fill = rdgy_palette[8]) +
-                                              labs(x = "President", y = "Mean sentence length (in words)") + 
-                                              theme_bw() + theme(legend.box = "horizontal",
-                                              panel.grid = element_blank(),
-                                              legend.position="bottom", 
-                                              axis.title = element_text(family = "Andale Mono", face="bold", size=13),
-                                              legend.text = element_text(face="bold", size=6),
-                                              legend.box.background = element_rect(colour = "black"),
-                                              strip.text.x = element_text(size = 15, face = "bold"),
-                                              plot.title = element_text(hjust = 0.5),
-                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
-                                              axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
-                                              guides(fill = guide_legend(nrow = 1))
-president_av_sentence_length_after
-
-```
-
-
-```{r}
-# create word-tokenized dataset
+# create word-tokens with this now balanced speech data 
 tidyWord_sona <- tidySentences_sona4presidents_balanced %>% mutate (sentenceID = row_number()) %>% 
                  unnest_tokens(output = word, input = sentence, token = "words")
 
-# clean dataset 
+# clean word-tokenized, balanced speech data 
 tidyWord_sona <- tidyWord_sona %>% filter(str_detect(word, "\\D"),                                # retain only all non-digit words
                                           !(nchar(word) < 2),                                     # remove words with excessively short length (< 2 letters)
                                           !word %in% stop_words$word,                             # removal of stop words
@@ -309,55 +274,24 @@ tidyWord_sona <- tidyWord_sona %>% filter(str_detect(word, "\\D"),              
                                                         'south', 'africa', 'african', 'africans')) # remove common words in speech (custom stop word list)
 
 # commented out to make rendering time more efficient and not override data
-tidySentence_sona_final <- tidyWord_sona %>% group_by(year, president,date, sentenceID) %>%
-                           summarize(sentence = paste(word, collapse = " "))
-write.csv(tidySentence_sona_final, "tidySentence_sona_final.csv", row.names=FALSE)
+# tidySentence_sona_final <- tidyWord_sona %>% group_by(year, president,date, sentenceID) %>%
+#                            summarize(sentence = paste(word, collapse = " "))
+# write.csv(tidySentence_sona_final, "tidySentence_sona_final.csv", row.names=FALSE)
 
 sona_sentences <- read.csv("tidySentence_sona_final.csv")
-
 ```
 
 
-```{r}
-# calculate the average length of presidents' sentences (AFTER removal of stop-words)
-president_av_sentence_length_after <- sona_sentences %>% group_by(president) %>% select(president, sentence) %>%
-                                      summarize(av_sen_length = floor(mean(nchar(sentence)))) 
-president_av_sentence_length_after$president <- factor(president_av_sentence_length_after$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
-
-# define the number of colours from RdGy palette
-num_colors <- 10
-# create custom RdGy colour palette
-rdgy_palette <- brewer.pal(num_colors, "RdGy")
-
-# create a bar plot of presidents names and mean sentence length (after removing stop words/other cleaning)
-president_av_sentence_length_after <- ggplot(president_av_sentence_length_after, aes(x = president, y = av_sen_length)) +
-                                              geom_bar(stat = "identity", fill = rdgy_palette[9]) +
-                                              labs(x = "President", y = "Mean sentence length (in words)") + 
-                                              theme_bw() + theme(legend.box = "horizontal",
-                                              panel.grid = element_blank(),
-                                              legend.position="bottom", 
-                                              axis.title = element_text(family = "Andale Mono", face="bold", size=13),
-                                              legend.text = element_text(face="bold", size=6),
-                                              legend.box.background = element_rect(colour = "black"),
-                                              strip.text.x = element_text(family = "Andale Mono",size = 15, face = "bold"),
-                                              plot.title = element_text(hjust = 0.5),
-                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
-                                              axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
-                                              guides(fill = guide_legend(nrow = 1))
-president_av_sentence_length_after
-
-
-```
 ```{r, .hide, message=FALSE}
 
 # create custom RdGy colour palette
 suppressWarnings({rdgy_palette <- brewer.pal(10, "RdGy")})
 
-# plot most frequent unigram (one word) used across all presidents
+# plot most frequent unigram (one word) used across all presidents 
 freq_words_allspeeches <- tidyWord_sona %>% count(word, sort = TRUE) %>%
-                          top_n(20) %>%
+                          top_n(15) %>%
                           mutate(word = reorder(word, n)) %>%
-                          ggplot(aes(n, word)) + geom_col(fill = rdgy_palette[10]) +
+                          ggplot(aes(n, word)) + geom_col(fill = rdgy_palette[9]) +
                           labs(y = " ", x = "Number of times word appears") + 
                           theme_bw() + theme(legend.box = "horizontal",
                                               panel.grid = element_blank(),
@@ -370,6 +304,7 @@ freq_words_allspeeches <- tidyWord_sona %>% count(word, sort = TRUE) %>%
                                               axis.text.x = element_text(family = "Andale Mono", face="bold", size=11),
                                               axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
                                               guides(fill = guide_legend(nrow = 1))
+freq_words_allspeeches
 
 # define the number of colours from RdGy palette
 num_colors <- 12
@@ -381,7 +316,7 @@ tidyWord_sona$president <- factor(tidyWord_sona$president, levels = c("deKlerk",
 # plot most frequent unigram (one word) used across all presidents
 freq_words_bypresident <- tidyWord_sona %>% count(president, word, sort = TRUE) %>%
                           group_by(president) %>%
-                          top_n(20`) %>% ungroup() %>%
+                          top_n(15) %>% ungroup() %>%
                           ggplot(aes(n, word, fill = president)) +
                           geom_col() +
                           scale_fill_manual(values = rdgy_palette) + 
@@ -395,7 +330,7 @@ freq_words_bypresident <- tidyWord_sona %>% count(president, word, sort = TRUE) 
                                               legend.box.background = element_rect(colour = "black"),
                                               strip.text.x = element_text(family = "Andale Mono", size = 11, face = "bold"),
                                               plot.title = element_text(hjust = 0.5),
-                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=9),
+                                              axis.text.x = element_text(family = "Andale Mono", face="bold", size=8),
                                               axis.text.y = element_text(family = "Andale Mono", face="bold", size=9)) +
                                               guides(fill = guide_legend(nrow = 1))
 freq_words_bypresident
@@ -403,20 +338,46 @@ freq_words_bypresident
 ```
 
 
+
+
+
 ```{r}
+# use cleaned (e.g., removal of stop words, etc.) and balanced presidents' sentences for analysis purposes
+# create bag-of-words model ~ using 150 most frequent words for the four aforementioned presidents
+word_bag <- tidyWord_sona %>%
+  group_by(word) %>%
+  count() %>%
+  ungroup() %>%
+  top_n(150, wt = n) %>%
+  select(-n)
+nrow(word_bag) # actually extracted 155 words to use as features
 
-# use cleaned (e.g., removal of stop words, etc.) presidents' sentences for analysis purposes
-# create BoW model ~ using 100 most frequent words for the four aforementioned presidents
+speech_tdf <- tidyWord_sona %>% 
+  inner_join(word_bag) %>%
+  group_by(sentenceID, word) %>%
+  count() %>%  
+  group_by(sentenceID) %>%
+  mutate(total = sum(n)) %>%
+  ungroup()
 
+bag_of_words <- speech_tdf %>% 
+  select(sentenceID, word, n) %>% 
+  pivot_wider(names_from = word, values_from = n, values_fill = 0) %>%
+  left_join(sona_sentences %>% select(sentenceID, president)) %>%
+  select(sentenceID, president, everything())
 
-# sample sentence due prior finding of imbalance in number of sentences
-set.seed(5)
-sona_sentences_balanced <- sona_sentences_4presidents %>% 
-                           group_by(president) %>% slice_sample
-  
+# number of speeches
+nrow(bag_of_words) # 3509
+# number of speeches per president 
+table(bag_of_words$president)
+# Mandela = 873; Mbeki = 893; Ramaphosa = 882; Zuma = 861 
+# meaning: lost 127, 107, 118, 139 words lost, respectively by taking 155 most frequent words
 
-
-
+# necessary to balance presidential classes again, 
+# to achieve this: randomly select speeches equivalent to number in minority presidential class
+min_class_size <- min(table(bag_of_words$president))
+bag_of_words <- bag_of_words %>% group_by(president) %>% sample_n(min_class_size) %>% ungroup()
+table(bag_of_words$president)
 
 ```
 
