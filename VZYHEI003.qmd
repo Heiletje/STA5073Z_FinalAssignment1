@@ -1,5 +1,5 @@
 ---
-title: "Multiplying numbers in R"
+title: "Prediction of Presidents"
 ---
 
 <h4> Data pre-processing </h4> 
@@ -9,7 +9,7 @@ title: "Multiplying numbers in R"
 # Preliminaries - load relevant packages/lexicons and import data
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # load packages
-library(ggplot2) ; library(dplyr) ; library(tidyverse) ; library(tidytext) ; library(stringr) ; library(lubridate); library(textdata); library(keras)
+library(ggplot2) ; library(dplyr) ; suppressMessages(library(tidyverse)) ; library(tidytext) ; library(stringr) ; library(lubridate); library(textdata); library(keras); library(RColorBrewer)
 
 # create dictionary of .txt file names containing data 
 textFiles <- c('1994_pre_elections_deKlerk.txt',
@@ -67,8 +67,6 @@ sona <- data.frame(filename = textFiles, speech = this_speech, stringsAsFactors 
 ```
 
 
-
-
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # Data wrangling processes
@@ -80,8 +78,12 @@ set.seed(5)
 sona$year <- str_sub(sona$filename, start = 1, end = 4)
 sona$president <- str_remove_all(str_extract(sona$filename, "[dA-Z].*\\."), "\\.")
 
+# turn into tidy-text formats (with additional pre-processsing cleaning)
+replace_reg <-  '(http.*?(\\s|.$))|(www.*?(\\s|.$))|&amp;|&lt;|&gt;|\n' # string of unnecessary text to remove
+
 # parse the date 
-sona <-sona %>% mutate(date = str_sub(speech, start=1, end=30),
+sona <-sona %>% mutate(speech = str_replace_all(speech, replace_reg , ' '),
+                       date = str_sub(speech, start=1, end=30),
                        date = str_replace_all(date, "February", "02"),
                        date = str_replace_all(date, "June", "06"),
                        date = str_replace_all(date, "Feb", "02"),
@@ -98,33 +100,178 @@ sona <-sona %>% mutate(date = str_sub(speech, start=1, end=30),
                        date = str_replace_all(date, '\n', ''))
 
 
-# turn into tidy-text formats (with additional pre-processsing cleaning)
-replace_reg <- '(http.*?(\\s|.$))|(www.*?(\\s|.$))|&amp;|&lt;|&gt;|\n'              # string of unnecessary text to remove
+# select only relevant columns for analysis purposes
+sona <- sona %>% select(speech, year, president, date)
 
-# token = unigram (one word)
-tidyWord_sona <- sona %>% 
-                 mutate(speech = str_replace_all(speech, replace_reg , ' ')) %>%    # remove any unwanted expression 
-                 unnest_tokens(output = word, input = speech, token = "sent") %>%  # word tokenization 
-                 filter(str_detect(word, "\\D"),                                    # retain only all non-digit words
-                        !(nchar(word) < 2),                                         # remove words with excessively short length (< 2 letters)
-                        !word %in% stop_words$word,                                 # removal of stop words
-                        !word %in% c("madam", "madame", "madames"))                 # removal of common speech term in, misinterpreted as positive sentiment
+```
 
-# plot most frequent unigram (one word) used across all presidents 
-tidyWord_sona %>% count(word, sort = TRUE) %>%
-                  filter(n > 350) %>%
-                  mutate(word = reorder(word, n)) %>%
-                  ggplot(aes(n, word)) + geom_col() +
-                  labs(y = "Most common word across all presidents' speeches", 
-                       x = "Number of times word appears in speech") + 
-                  theme_bw() + 
-                  theme(title = element_text(face="bold", size=12),
-                        legend.position = "none",
-                        plot.title = element_text(hjust = 0.5),
-                        strip.text.x = element_text(size = 15, face = "bold"),
-                        axis.text.y = element_text(size=12),
-                        axis.text.x = element_text(size=12),
-                        panel.grid.major = element_blank(),
-                        panel.grid.minor = element_blank())
+
+
+```{r}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# Exploratory data analysis
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# create a dataframe with the president names and speech counts
+president_num_speeches <- as.data.frame(table(sona$president))
+colnames(president_num_speeches) <- c("president", "num_speeches")
+president_num_speeches$president <- factor(president_num_speeches$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+
+# define the number of colours from RdGy palette
+num_colors <- 10
+# create custom RdGy colour palette
+rdgy_palette <- brewer.pal(num_colors, "RdGy")
+
+# create a bar plot of presidents names and speech counts
+GGpresident_num_speeches <- ggplot(president_num_speeches, aes(x = president, y = num_speeches)) +
+                                   geom_bar(stat = "identity", fill = rdgy_palette[1]) +
+                                   labs(x = "President", y = "Number of speeches") + 
+ theme_bw() + theme(legend.box = "horizontal",
+                     panel.grid = element_blank(),
+                     legend.position="bottom", 
+                     axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                     legend.text = element_text(face="bold", size=6),
+                     legend.box.background = element_rect(colour = "black"),
+                     strip.text.x = element_text(size = 15, face = "bold"),
+                     plot.title = element_text(hjust = 0.5),
+                     axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                     axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+  guides(fill = guide_legend(nrow = 1))
+
+
+GGpresident_num_sentences_before <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
+                                           geom_bar(stat = "identity", fill = rdgy_palette[8]) +
+                                           labs(x = "President", y = "Number of sentences") + 
+                                          theme_bw() + theme(legend.box = "horizontal",
+                                           panel.grid = element_blank(),
+                                    legend.position="bottom", 
+                                    axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                    legend.text = element_text(face="bold", size=6),
+                                    legend.box.background = element_rect(colour = "black"),
+                                    strip.text.x = element_text(size = 15, face = "bold"),
+                                    plot.title = element_text(hjust = 0.5),
+                                    axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                                    axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                    guides(fill = guide_legend(nrow = 1))
+GGpresident_num_sentences_before
+
+```
+
+```{r}
+# create sentence-tokenized dataset
+tidySentences_sona <- sona %>% unnest_tokens(output = sentence, input = speech, token = "sentences")  
+
+# create a dataframe with the president names and sentence counts
+president_num_sentences <- as.data.frame(table(tidySentences_sona$president))
+colnames(president_num_sentences) <- c("president", "num_sentences")
+president_num_sentences$president <- factor(president_num_sentences$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+
+# define the number of colours from RdGy palette
+num_colors <- 10
+# create custom RdGy colour palette
+rdgy_palette <- brewer.pal(num_colors, "RdGy")
+
+# create a bar plot of presidents names and speech counts
+GGpresident_num_sentences_after <- ggplot(president_num_sentences, aes(x = president, y = num_sentences)) +
+                                    geom_bar(stat = "identity", fill = rdgy_palette[8]) +
+                                    labs(x = "President", y = "Number of sentences") + 
+                                    theme_bw() + theme(legend.box = "horizontal",
+                                    panel.grid = element_blank(),
+                                    legend.position="bottom", 
+                                    axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                                    legend.text = element_text(face="bold", size=6),
+                                    legend.box.background = element_rect(colour = "black"),
+                                    strip.text.x = element_text(size = 15, face = "bold"),
+                                    plot.title = element_text(hjust = 0.5),
+                                    axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                                    axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+                                    guides(fill = guide_legend(nrow = 1))
+GGpresident_num_sentences_after
+
+```
+
+```{r}
+# calculate the average length of presidents' sentences (BEFORE removal of stop-words)
+president_av_sentence_length <- tidySentences_sona %>% group_by(president) %>% select(president, sentence) %>%
+                                summarize(av_sen_length = floor(mean(nchar(sentence)))) 
+president_av_sentence_length$president <- factor(president_av_sentence_length$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+
+# define the number of colours from RdGy palette
+num_colors <- 10
+# create custom RdGy colour palette
+rdgy_palette <- brewer.pal(num_colors, "RdGy")
+
+# create a bar plot of presidents names and speech counts
+ggplot(president_av_sentence_length, aes(x = president, y = av_sen_length)) +
+ geom_bar(stat = "identity", fill = rdgy_palette[10]) +
+ labs(x = "President", y = "Mean sentence length (in words)") + 
+theme_bw() + theme(legend.box = "horizontal",
+                     panel.grid = element_blank(),
+                     legend.position="bottom", 
+                     axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                     legend.text = element_text(face="bold", size=6),
+                     legend.box.background = element_rect(colour = "black"),
+                     strip.text.x = element_text(size = 15, face = "bold"),
+                     plot.title = element_text(hjust = 0.5),
+                     axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                     axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+  guides(fill = guide_legend(nrow = 1))
+
+
+```
+
+
+```{r}
+# create word-tokenized dataset
+tidyWord_sona <- tidySentences_sona %>% mutate (sentenceID = row_number()) %>% 
+                 unnest_tokens(output = word, input = sentence, token = "words")
+
+# clean dataset 
+tidyWord_sona <- tidyWord_sona %>% filter(str_detect(word, "\\D"),                                # retain only all non-digit words
+                                          !(nchar(word) < 2),                                     # remove words with excessively short length (< 2 letters)
+                                          !word %in% stop_words$word,                             # removal of stop words
+                                          !word %in% c('madam', 'madame', 'madames', 'speaker',
+                                                       'deputy', 'president', 'senate', 'chief', 
+                                                        'honourable', 'member', 'chairperson',
+                                                        'south', 'africa', 'african', 'africans')) # remove common words in speech (custom stop word list)
+
+# commented out to make rendering time more efficient
+# tidySentence_sona_final <- tidyWord_sona %>% group_by(year, president,date, sentenceID) %>%
+#                            summarize(sentence = paste(word, collapse = " "))
+# write.csv(tidySentence_sona_final, "tidySentence_sona_final.csv", row.names=FALSE)
+
+sona_sentences <- tidySentence_sona_final
+sona_sentences <- read.csv("tidySentence_sona_final.csv")
+
+```
+
+
+```{r}
+# calculate the average length of presidents' sentences (AFTER removal of stop-words)
+president_av_sentence_length <- tidySentences_sona %>% group_by(president) %>% select(president, sentence) %>%
+                                summarize(av_sen_length = floor(mean(nchar(sentence)))) 
+president_av_sentence_length$president <- factor(president_av_sentence_length$president, levels = c("deKlerk", "Mandela", "Mbeki", "Motlanthe", "Zuma", "Ramaphosa"))
+
+# define the number of colours from RdGy palette
+num_colors <- 10
+# create custom RdGy colour palette
+rdgy_palette <- brewer.pal(num_colors, "RdGy")
+
+# create a bar plot of presidents names and speech counts
+ggplot(president_av_sentence_length, aes(x = president, y = av_sen_length)) +
+ geom_bar(stat = "identity", fill = rdgy_palette[10]) +
+ labs(x = "President", y = "Mean sentence length (in words)") + 
+theme_bw() + theme(legend.box = "horizontal",
+                     panel.grid = element_blank(),
+                     legend.position="bottom", 
+                     axis.title = element_text(family = "Andale Mono", face="bold", size=13),
+                     legend.text = element_text(face="bold", size=6),
+                     legend.box.background = element_rect(colour = "black"),
+                     strip.text.x = element_text(size = 15, face = "bold"),
+                     plot.title = element_text(hjust = 0.5),
+                     axis.text.x = element_text(family = "Andale Mono", face="bold", size=11, angle = 55, hjust = 1),
+                     axis.text.y = element_text(family = "Andale Mono", face="bold", size=11)) +
+  guides(fill = guide_legend(nrow = 1))
+
 ```
 
