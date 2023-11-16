@@ -9,6 +9,48 @@ execute:
 ---
 
 
+<div style="text-align: justify"> 
+
+<h4> Abstract </h4> 
+<hr> 
+Converging machine learning (ML) and natural language processing (NLP) techniques, a predictive text-analysis was performed on the State of the Nation Addresses (SONAs) delivered by South African presidents spanning the period from 1994 to 2023. Different types of neural networks (NNs) were employed for the purpose of predicting the president from their spoken sentences. 
+Serving as a foundational-comparative model, a naive classification tree (CT) was first fitted followed by varying-in-complexity models from a simple feed-forward NN (FNN) to more sophisticated NNs, such as recurrent (RNN) and convolutional (CNN). For each predictive model, the involved text was transformed into features via three approaches, namely bag-of-words (BoW), term-frequency, inverse-document-frequency (tf-idf), and embeddings. A comparison, in terms of correct-classification capability, between the numerous NNs across the differently defined features was conducted with the objective of obtaining the optimal predictive model for the political speeches. 
+
+
+<h4> Introduction </h4> 
+<hr> 
+
+<h4> Literature Review </h4> 
+<hr> 
+
+<b><u> SONA  </b></u>
+
+
+
+<b><u> Machine learning </b></u>
+
+
+<h4> Data </h4>
+<hr>
+
+<b><u> Tokenization </b></u>
+
+<b><u> Pre-processing </b></u>
+
+
+<h4> Methods </h4>
+<hr>
+
+<b><u> Classification Tree (CT) </b></u>
+
+<b><u> Feed-forward Neural Network (NN) </b></u>
+
+<b><u> Convolutional Neural Network (CNN) </b></u>
+
+<b><u> Model performance metrics </b></u>
+
+
+
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # preliminaries: load relevant libraries; import data; define colour palette
@@ -38,6 +80,8 @@ from tensorflow.keras.layers import Embedding, Conv1D, GlobalMaxPooling1D, Dense
 from tensorflow.keras.utils import to_categorical
 from kerastuner.tuners import RandomSearch
 from tensorflow.keras.layers import LSTM, SpatialDropout1D
+import matplotlib.ticker as ticker
+from nltk.tokenize import word_tokenize
 
 # set seeds for reproducibility purposes
 np.random.seed(5)
@@ -48,9 +92,9 @@ os.environ['PYTHONHASHSEED'] = str(5)
 # import data 
 data = pd.read_csv("sona.csv")
 
-# Generate the RdGy colour palette
-# num_colors = 11
-# rdgy_palette = brewer2mpl.get_map('RdGy', 'Sequential', num_colors, reverse=True).mpl_colors
+# generate the RdGy colour palette
+num_colors = 10
+rdgy_palette = brewer2mpl.get_map('RdGy', 'Diverging', num_colors, reverse=True).mpl_colors
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
@@ -67,19 +111,18 @@ from nltk.tokenize import sent_tokenize
 from nltk.corpus import stopwords
 import re
 
-# Assuming `data` is your original DataFrame
-# Select subset of four out of six presidents
+# select subset of four out of six presidents
 subset = data[data['president'].isin(['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa'])]
 
-# Initialize a list to store the sentences
+# initialize a list to store the sentences
 sentences_data = []
 
-# Iterate through each row in the subset
+# iterate through each row in the subset
 for index, row in subset.iterrows():
-    # Split the speech into sentences
+    # split the speech into sentences
     speech_sentences = sent_tokenize(row['speech'])
     
-    # For each sentence, create a new row with the same information
+    # for each sentence, create a new row with the same information
     for sentence in speech_sentences:
         sentences_data.append({
             'sentence': sentence,
@@ -88,34 +131,164 @@ for index, row in subset.iterrows():
             'date': row['date']
         })
 
-# Create a new DataFrame with sentences
+# create a new dataframe with sentences
 sona_sentences = pd.DataFrame(sentences_data)
 
-# Filtering function to remove stop words and only words with a length of three characters or more
+# filtering function to remove stop words and only words with a length of three characters or more
 english_words = set(nltk.corpus.words.words())
 stop_words = set(stopwords.words('english'))
 
 def filter_text(text):
     return ' '.join([word for word in text.split() if word not in stop_words and len(word) > 3 and word in english_words])
 
-# Apply the filter function to the cleaned sentences
+# apply the filter function to the cleaned sentences
 sona_sentences['cleaned_sentence'] = sona_sentences['sentence'].apply(filter_text)
 
-# Clean sentences
+# clean sentences
 sona_sentences['cleaned_sentence'] = sona_sentences['cleaned_sentence'].apply(lambda text: re.sub(r'[^A-Za-z\s]', '', text).lower())
-
-# Output the number of rows
-sona_sentences.shape
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
 
 ```{python}
+#----------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis: plot speech counts
+#----------------------------------------------------------------------------------------------------------------------------
+# create dataframe with counts of speeches for each president
+president_num_speeches = data['president'].value_counts().reset_index()
+president_num_speeches.columns = ['president', 'num_speeches']
 
-sona_sentences.head()
+# setting a specific order for the presidents
+ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
+president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
 
+# sort the DataFrame based on the defined order
+president_num_speeches.sort_values('president', inplace=True)
+
+# plot the sentence counts
+plt.bar(president_num_speeches['president'], president_num_speeches['num_speeches'], color=rdgy_palette[1])
+
+# Customizing the plot
+plt.xlabel("President", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.ylabel("Number of Speeches", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontsize=11, fontweight='bold', family='Andale Mono')
+plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
+plt.title("", fontsize=13, fontweight='bold', ha='center')
+
+# Additional theme customizations
+plt.grid(False)
+plt.tight_layout()
+plt.show()
+#---------------------------------------------------------------------------------------------------------------------------
 ```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis: plot sentence counts 
+#---------------------------------------------------------------------------------------------------------------------------
+# count the occurrences of each president
+president_num_sentences = sona_sentences['president'].value_counts().reset_index()
+president_num_sentences.columns = ['president', 'num_sentences']
+
+# setting a specific order for the presidents
+ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
+president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
+
+# sorting the dataframe based on the defined order
+president_num_sentences.sort_values('president', inplace=True)
+president_num_sentences.reset_index(drop=True, inplace=True)
+
+# creating the sentence-count plot
+plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
+
+# customizing the sentence-count plot
+plt.xlabel("President", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.ylabel("Number of Sentences", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontsize=11, fontweight='bold', family='Andale Mono')
+plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
+plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.grid(False)
+plt.tight_layout()
+plt.show()
+#---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis:  plot average sentence lengths
+#---------------------------------------------------------------------------------------------------------------------------
+# calculate the average length of sentences for each president
+sona_sentences['sentence_length'] = sona_sentences['sentence'].apply(len)
+avg_sentence_length = sona_sentences.groupby('president')['sentence_length'].mean().reset_index()
+avg_sentence_length['av_sen_length'] = avg_sentence_length['sentence_length'].apply(lambda x: int(x))
+avg_sentence_length.drop('sentence_length', axis=1, inplace=True)
+# sort the dataframe based on the defined order
+avg_sentence_length.sort_values('president', inplace=True)
+
+# plot the average sentence lengths 
+plt.bar(avg_sentence_length['president'], avg_sentence_length['av_sen_length'], color=rdgy_palette[9])
+
+# Customizing the plot
+plt.xlabel("President", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.ylabel("Mean Sentence Length (in words)", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontsize=11, fontweight='bold', family='Andale Mono')
+plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
+plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.grid(False)
+plt.tight_layout()
+plt.show()
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis: plot top frequent words across all speeches and stratified by president
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# add a new column 'sentenceID' which is the row number
+sona_sentences['sentenceID'] = range(1, len(sona_sentences) + 1)
+
+# tokenize each sentence into words and create a new dataframe
+sona_words = sona_sentences['cleaned_sentence'].apply(word_tokenize).explode().reset_index()
+sona_words.columns = ['sentenceID', 'word']
+
+# counting the occurrences of each word
+word_counts = sona_words['word'].value_counts().reset_index()
+word_counts.columns = ['word', 'n']
+
+# find the top 15 most frequent words
+top_words = word_counts.head(15)
+
+# sort the words for better visualization
+top_words = top_words.sort_values(by='n', ascending=True)
+
+# plot the top 15 most frequent words across all speeches
+plt.figure(figsize=(10, 6))
+sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
+
+# Customizing the plot
+plt.xlabel("Number of times word appears", fontsize=13, fontweight='bold')
+plt.ylabel("", fontsize=13, fontweight='bold', family='Andale Mono')
+plt.xticks(fontsize=11, fontweight='bold', family='Andale Mono')
+plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
+plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.grid(False)
+sns.set_style("whitegrid")
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+```
+
+
 
 
 ```{python}
@@ -247,7 +420,7 @@ fnn_clf_bow = GridSearchCV(MLPClassifier(max_iter=1000), fnn_params, cv=5)
 fnn_clf_bow.fit(X_train_bow, y_train)
 
 # Predictions and Evaluation
-y_pred_fnn_bow = fnn_clf_bow.predict(X_test_tfidf)
+y_pred_fnn_bow = fnn_clf_bow.predict(X_test_bow)
 print("Best parameters:", fnn_clf_bow.best_params_)
 print("\nClassification Report (Feed-forward NN - BoW):")
 print(classification_report(y_test, y_pred_fnn_bow))
@@ -451,6 +624,11 @@ cnn_tuner_emb.search(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_
 best_hps_cnn_emb = cnn_tuner_emb.get_best_hyperparameters(num_trials=1)[0]
 best_cnn_model_emb = build_cnn_model(best_hps_cnn_emb)
 history_cnn_emb = best_cnn_model_emb.fit(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
+
+# fit best CNN model 
+best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
+best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
+history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
 
 # predictions and evaluation
 y_pred_cnn_emb = best_cnn_model_emb.predict(X_test_emb)
