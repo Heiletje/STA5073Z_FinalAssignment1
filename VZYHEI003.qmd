@@ -15,11 +15,12 @@ execute:
 <h4> Introduction </h4> 
 <hr> 
 
-
 <h4> Literature Review </h4> 
 <hr> 
 
 <b><u> SONA  </b></u>
+
+
 
 <b><u> Machine learning </b></u>
 
@@ -46,10 +47,11 @@ execute:
 
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-# Preliminaries - load relevant packages/lexicons and import data
+# preliminaries: load relevant packages/lexicons and import data
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # load packages
-library(ggplot2) ; suppressMessages(library(dplyr)) ; suppressMessages(library(tidyverse)) ; library(tidytext) ; library(stringr) ; suppressMessages(library(lubridate)); library(textdata); suppressMessages(library(keras)); library(RColorBrewer)
+library(ggplot2) ; suppressMessages(library(dplyr)) ; suppressMessages(library(tidyverse)) ; library(tidytext) ; library(stringr) ; suppressMessages(library(lubridate)) ; library(textdata) ; suppressMessages(library(keras)) ; library(RColorBrewer); suppressMessages(library(kerastuneR)) ; suppressMessages(library(tensorflow))
 
 # create dictionary of .txt file names containing data 
 textFiles <- c('1994_pre_elections_deKlerk.txt',
@@ -104,13 +106,17 @@ this_speech[36] <- readChar('https://raw.githubusercontent.com/iandurbach/datasc
 # collate .txt data files into a dataframe
 sona <- data.frame(filename = textFiles, speech = this_speech, stringsAsFactors = FALSE)
 
+sona <- write.csv("sona.csv")
+
+
 ```
 
 
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-# Data wrangling processes
+# data pre-processing 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # set seed for reproducible-research purposes
 set.seed(5)
 
@@ -148,9 +154,12 @@ sona <- sona %>% select(speech, year, president, date)
 <h4> Exploratory Data Analysis </h4> 
 <hr> 
 
+Figure 1 
+
+
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-# Exploratory data analysis
+# exploratory data analysis: plot speech counts
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # create a dataframe with the president names and speech counts
@@ -185,6 +194,11 @@ GGpresident_num_speeches
 
 
 ```{r}
+library(reticulate)
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis: plot sentence counts ; data pre-processing: sentence tokenization
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # omit de Klerk and Motlanthe due to prior finding of few number of speeches
 sona4presidents <- sona %>% filter(president %in% c('Mandela', 'Mbeki', 'Zuma', 'Ramaphosa'))
 
@@ -221,6 +235,10 @@ GGpresident_num_sentences
 ```
 
 ```{r}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis:  plot average sentence lengths
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # calculate the average length of presidents' sentences (before balancing data)
 president_av_sentence_length_before <- tidySentences_sona4presidents %>% group_by(president) %>% select(president, sentence) %>%
                                        summarize(av_sen_length = floor(mean(nchar(sentence)))) 
@@ -253,6 +271,10 @@ president_av_sentence_length_before
 
 
 ```{r}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# data pre-processing: data balancing, word tokenization
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # necessary to find sentence-by-president sample due prior finding of imbalance in number of sentences (Mandela with very little compared to Zuma, for example)
 set.seed(5)
 tidySentences_sona4presidents_balanced <- tidySentences_sona4presidents %>% 
@@ -283,6 +305,9 @@ sona_sentences <- read.csv("tidySentence_sona_final.csv")
 
 
 ```{r, .hide, message=FALSE}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# exploratory data analysis: plot top frequent words across all speeches and stratified by president
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # create custom RdGy colour palette
 suppressWarnings({rdgy_palette <- brewer.pal(10, "RdGy")})
@@ -340,8 +365,25 @@ freq_words_bypresident
 
 
 
-
 ```{r}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# create three different data structures: bag-of-words, tf-idf, and embeddings
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+```
+
+
+```{r, eval = FALSE}
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# predictive modelling
+# ~ model 1: simple classification tree with bag-of-words features 
+#---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#---------------------------------------------------------------------------------------------------
+# create bag-of-words features
+#---------------------------------------------------------------------------------------------------
 # use cleaned (e.g., removal of stop words, etc.) and balanced presidents' sentences for analysis purposes
 # create bag-of-words model ~ using 150 most frequent words for the four aforementioned presidents
 word_bag <- tidyWord_sona %>%
@@ -379,7 +421,56 @@ min_class_size <- min(table(bag_of_words$president))
 bag_of_words <- bag_of_words %>% group_by(president) %>% sample_n(min_class_size) %>% ungroup()
 table(bag_of_words$president)
 
+
+
+
+#---------------------------------------------------------------------------------------------------
+# create training and testing subsets
+#---------------------------------------------------------------------------------------------------
+set.seed(5)
+training_ids <- bag_of_words %>% 
+  group_by(president) %>% 
+  slice_sample(prop = 0.8) %>%    # specify 80% ~ which will be proportioned as 60% for training; 20% for validation 
+  ungroup() %>%
+  select(sentenceID) 
+
+training_speeches <- bag_of_words %>% 
+  right_join(training_ids, by = 'sentenceID') %>%
+  select(-sentenceID)
+
+test_speeches <- bag_of_words %>% 
+  anti_join(training_ids, by = 'sentenceID') %>%
+  select(-sentenceID)
+
+train <- list()
+test <- list()
+train$x <- as.matrix(bag_of_words[training_ids$sentenceID,-c(1,2)])
+test$x <-  as.matrix(bag_of_words[-training_ids$sentenceID,-c(1,2)])
+
+train$y <- as.factor(bag_of_words$president[training_ids$sentenceID])
+test$y <-  as.factor(bag_of_words$president[-training_ids$sentenceID])
+
+#---------------------------------------------------------------------------------------------------
+# fitting the classification tree
+#---------------------------------------------------------------------------------------------------
+fit <- rpart(president ~ ., training_speeches, method = 'class')
+plot(fit, main = 'Full Classification Tree')
+text(fit, use.n = TRUE, all = TRUE, cex=.8)
+
+fittedtrain <- predict(fit, type = 'class')
+predtrain <- table(training_speeches$president, fittedtrain)
+predtrain
+round(sum(diag(predtrain))/sum(predtrain), 3) # training accuracy
+
+fittedtest <- predict(fit, newdata = test_speeches, type = 'class')
+predtest <- table(test_speeches$president, fittedtest)
+predtest
+round(sum(diag(predtest))/sum(predtest), 3) # test accuracy
+
 ```
+
+
+
 
 
 
