@@ -24,14 +24,13 @@ The domains of machine learning (ML) and natural language processing (NLP) inter
 In order to achieve this predictive analysis, diverse ML models with differing degrees of complexity are applied. First, in order to form a comparative basis for performance, a naïve classification tree is fitted. This is then followed with the implementation of three types of neural networks (NNs),each with ascending degrees of sophistication, specifically a simple one (feed-forward) and then more complex ones (recurrent and convolutional).
 
 
+
 <h4> Literature Review </h4> 
 <hr> 
 
 <b><u> SONA  </b></u>
 
 
-
-<b><u> Machine learning </b></u>
 
 
 <h4> Data </h4>
@@ -48,11 +47,38 @@ In order to achieve this predictive analysis, diverse ML models with differing d
 <b><u> Classification Tree (CT) </b></u>
 ![Schematic representation of an exemplary CT.](CT.png){#fig-CT}
 
+A classification tree (CT) [@Breiman1984] is a straightforward ML technique predominately applied in categorical prediction contexts. This simple model operates on the principle of segmenting some data into subsets, where these partitions are based on distinct values of individual features. It is naïve in its approach given it considers each feature in isolation in order to make classifying decisions, hence often overlooking complex feature interactions. 
+
+When applied to text-based data, a CT makes classification decisions based on either the frequency (a BoW representation) or weighted frequency of words (a tf-idf representation) as the features. As illustrated in @fig-CT, each CT decision node (shown as a grey, rectangular block) represents a rule where some threshold on a particular word's frequency (or weighted version thereof) is defined. While less conventional, word embeddings can also be utilized instead. Though, the CT is often found to be mediocre in its ability to fully exploit the rich semantic and syntactic relationships captured in embeddings. Given that embeddings provide a dense representation of words in a high-dimensional space, the simplistic decision boundaries of a CT are sub-par in capturing the associated contextual nuances [@Charbuty2021]. 
+
+CT hyperparameters comprise of the minimum number of samples required to split a node  as well as the maximum tree depth. Using a grid-search approach coupled with a *k*-fold cross-validation (CV) process, various combinations of these two hyperparameters over smaller sets of data (folds) are systematically assessed to find a configuration where a chosen performance metric is optimized. Here, such a metric is the average of evaluation scores (like accuracy) obtained across all folds for the hyperparameter set yielding the highest value thereof.
+
+CTs are superior in terms of its simplistic interpretability and visualization, though this advantage is tainted with its proneness to overfitting (with deep trees) and inability to capture feature complexity.  
+
 <b><u> Feed-forward Neural Network (NN) </b></u>
 ![Schematic representation of any FNN](FNN.png){#fig-FNN}
 
+A feed-forward Neural Network (FNN) is a type of artificial NN wherein connections between the nodes (neurons) do not form a cycle. As depicted in @fig-FNN, this architecture is characterized by its stratified structure,  comprising of an input layer (grey circles), one or more hidden layers (white circles), and an output layer (black circles). In each layer, the nodes apply weights and biases to inputs before passing through an activation function.
+
+In text analysis, when using BoW or tf-idf representations, each word is represented as a feature (i.e., a unique input neuron). FNNs transform text-based data into numerical vectors where each dimension corresponds to a word frequency (or weighted version thereof). These vectors are efficiently processed, thereby enabling the network to learn patterns that are predictive of an outcome of interest (like predicting presidents from sentences). With  the employment of embeddings, unlike CTs, FNNs are able to leverage such dense word representations to capture subtler semantic patterns, potentially leading to more enhanced predictions. 
+
+FNN hyperparameters involve the number of hidden layers, the number of neurons in each hidden layer, the type of activation function (e.g., ReLU or tanh), and the learning rate. To identify the optimal network architecture, a grid search over these tuneable parameters is executed. 
+
+In contrast to CTs, FNNs possess a higher aptitude to deal with feature intricacies, whether there is high dimensionality or the presence of non-linear relationships. Despite this, FNNs are also still susceptible to overfitting (with many layers/nodes). Additionally, despite its ability to capture semantic information, this is hindered by its inherent incapacity to simultaneously encapsulate the sequential/temporal relationship prevalent in text. 
+
+
 <b><u> Convolutional Neural Network (CNN) </b></u>
 ![Schematic representation of any CNN](CNN.png){#fig-CNN}
+
+Convolutional Neural Networks (CNNs), primarily applied within the field of image-processing, have also proven proficiency in processing natural language processing (NLP) tasks. CNNs are designed to adaptively learn spatial hierarchies of features from input data. 
+In the context of text, this means the model is able to learn any recognizable patterns or sequences of words which carry significant semantic meaning.
+
+In comparison to CTs and FNNS, CNNs are the most specialized to incorporate embeddings, exploiting the associated representation to capture contextual information. The convolutional layers (as shown in @fig-CNN) are able to detect local patterns (like phrases or commonly co-occurring words) within these embeddings. With this model, the BoW and tf-idf approach is not ordinarily applied, given that both these representations lack the inherent sequential nature of text. Thus, the ability of CNNs to capture local dependencies is limited. 
+
+CNN hyperparameters consist of the number convolutional layers, the size and number of filters (kernels), the size of the pooling layers, and the dropout rate. To configure the optimal set of these tunable parameters, a grid search approach is applied. 
+
+CNNs are able to capture local dependencies in text-based data, allowing for more apt short-length pattern recognition. However, when dealing with long-range dependencies (like with sentences), the performance of CNNs is dampened. Lastly, given the implicit shared-weight architecture of the model, the tendency to overfit is not as prevalent compared to CTs and FNNS. 
+
 
 <b><u> Recurrent Neural Network (RNN) </b></u>
 ![Schematic representation of any RNN](RNN.png){#fig-RNN}
@@ -98,10 +124,10 @@ from keras_tuner import RandomSearch
 
 # set global parameters
 plt.rcParams['font.family'] = 'Andale Mono'
-plt.rcParams['xtick.labelsize'] = 16
-plt.rcParams['ytick.labelsize'] = 16
-plt.rcParams['axes.labelsize'] = 20
-plt.rcParams['legend.fontsize'] = 18
+plt.rcParams['xtick.labelsize'] = 14
+plt.rcParams['ytick.labelsize'] = 14
+plt.rcParams['axes.labelsize'] = 16
+plt.rcParams['legend.fontsize'] = 14
 
 # set seeds for reproducibility purposes
 np.random.seed(5)
@@ -205,11 +231,15 @@ plt.title("", fontweight='bold', ha='center')
 # Additional theme customizations
 plt.grid(False)
 plt.tight_layout()
-plt.show()
+plt.savefig(f'EDA/president_num_speeches.png', bbox_inches='tight')
+plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
-Figure 1 delineates the distribution of speeches across the different presidents, revealing a notable underrepresentation of de Klerk and Motlanthe. This scarcity of speeches, and so a shortage of number of sentences as well, amongst only two out of the six presidents results in an imbalanced corpus. The subsequent training of any ML model on such disproportionate data potentially jeopardizes the overall predictive performance and generalizability thereof.  Consequently, it is strategically chosen to exclude de Klerk and Motlanthe, hence instead focusing the prediction task exclusively on Mbeki, Zuma (with ten speeches each), Mandela and Ramaphosa (with seven speeches each). 
+
+![Number of SONA speeches for each president.](EDA/president_num_speeches.png){#fig-president_num_speeches}
+
+@fig-president_num_speeches delineates the distribution of speeches across the different presidents, revealing a notable underrepresentation of de Klerk and Motlanthe. This scarcity of speeches, and so a shortage of number of sentences as well, amongst only two out of the six presidents results in an imbalanced corpus. The subsequent training of any ML model on such disproportionate data potentially jeopardizes the overall predictive performance and generalizability thereof.  Consequently, it is strategically chosen to exclude de Klerk and Motlanthe, hence instead focusing the prediction task exclusively on Mbeki, Zuma (with ten speeches each), Mandela and Ramaphosa (with seven speeches each). 
 
 
 ```{python}
@@ -239,11 +269,14 @@ plt.yticks(fontweight='bold', family='Andale Mono')
 plt.title("", fontweight='bold', ha='center')
 plt.grid(False)
 plt.tight_layout()
-plt.show()
+plt.savefig(f'EDA/president_num_sentences.png', bbox_inches='tight')
+plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
+![Number of sentences in SONA speeches for each president.](EDA/president_num_sentences.png){#fig-president_num_sentences}
 
+@fig-president_num_sentences 
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
@@ -268,10 +301,14 @@ plt.yticks(finallyontweight='bold', family='Andale Mono')
 plt.title("", fontweight='bold', ha='center')
 plt.grid(False)
 plt.tight_layout()
-plt.show()
+plt.savefig(f'EDA/avg_sentence_length.png', bbox_inches='tight')
+plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
+![Average sentence length in SONA speeches for each president.](EDA/avg_sentence_length.png){#fig-avg_sentence_length}
+
+@fig-avg_sentence_length illustrates a notable contrast in the textual characteristics of speeches by Mandela and Zuma. Although Mandela's speeches encompass the fewest sentences, they surprisingly contain the second-highest average word count per sentence. Conversely, Zuma's speeches, while having the highest sentence count, exhibit the shortest average sentence length.
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -307,13 +344,18 @@ plt.title("", fontweight='bold', ha='center')
 plt.grid(False)
 sns.set_style("whitegrid")
 plt.tight_layout()
-plt.show()
+plt.savefig(f'EDA/top_words.png', bbox_inches='tight')
+plt.close() 
 
-# count the occurrences of each word
+# Assuming sona_words DataFrame is already defined and contains the 'word' column
+# Count the occurrences of each word
 word_counts_all = sona_words['word'].value_counts().head(15)
 
 # Sort the words for better visualization
 word_counts_all = word_counts_all.sort_values()
+
+# Define a RdGy-like color palette
+rdgy_palette = sns.color_palette("RdGy", n_colors=10)
 
 # Assuming 'president' is a column in the sona_words DataFrame
 # Filter the top 15 words for each president
@@ -323,12 +365,18 @@ top_words_per_president = sona_words.groupby('president')['word'].value_counts()
 g = sns.catplot(x='count', y='word', col='president', col_wrap=4, data=top_words_per_president, kind='bar', palette=rdgy_palette)
 g.set_axis_labels("Number of times word appears", "")
 g.set_titles("{col_name}")
-plt.show()
-
-
+plt.savefig(f'EDA/top_words_per_president.png', bbox_inches='tight')
+plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
+
+![Most frequent words stated across all speeches, irrespective of president.](EDA/top_words.png){#fig-top_words}
+@fig-top_words
+
+
+![Most frequent words stated across all speeches, stratified by president.](EDA/top_words_per_president.png){#fig-top_words_per_president}
+@fig-top_words_per_president 
 
 
 
@@ -416,7 +464,7 @@ print(classification_report(y_test, y_pred_tree_tfidf))
 
 # confusion matrix
 conf_matrix_tree_tfidf = confusion_matrix(y_test, y_pred_tree_tfidf)
-sns.heatmap(conf_matrix_tree_tfidf, annot=True, fmt='g')
+sns.heatmap(conf_matrix_tree_tfidf, annot=True, fmt='g', cmap=rdgy_palette)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
@@ -441,7 +489,7 @@ print(classification_report(y_test, y_pred_tree_emb))
 
 # confusion matrix
 conf_matrix_tree_emb = confusion_matrix(y_test, y_pred_tree_emb)
-sns.heatmap(conf_matrix_tree_emb, annot=True, fmt='g')
+sns.heatmap(conf_matrix_tree_emb, annot=True, fmt='g', cmap=rdgy_palette)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
@@ -467,7 +515,7 @@ print(classification_report(y_test, y_pred_fnn_bow))
 
 # Confusion Matrix
 conf_matrix_fnn_bow = confusion_matrix(y_test, y_pred_fnn_bow)
-sns.heatmap(conf_matrix_fnn_bow, annot=True, fmt='g')
+sns.heatmap(conf_matrix_fnn_bow, annot=True, fmt='g',cmap=rdgy_palette)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
@@ -492,7 +540,7 @@ print(classification_report(y_test, y_pred_fnn_tfidf))
 
 # Confusion Matrix
 conf_matrix_fnn_tfidf = confusion_matrix(y_test, y_pred_fnn_tfidf)
-sns.heatmap(conf_matrix_fnn_tfidf, annot=True, fmt='g')
+sns.heatmap(conf_matrix_fnn_tfidf, annot=True, fmt='g', cmap=rdgy_palette)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
@@ -516,7 +564,7 @@ print(classification_report(y_test, y_pred_fnn_emb))
 
 # Confusion Matrix
 conf_matrix_fnn_emb = confusion_matrix(y_test, y_pred_fnn_emb)
-sns.heatmap(conf_matrix_fnn_emb, annot=True, fmt='g')
+sns.heatmap(conf_matrix_fnn_emb, annot=True, fmt='g', cmap=rdgy_palette)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
@@ -571,14 +619,14 @@ print(classification_report(y_test_label_bow, y_pred_rnn_labels_bow))
 
 # Confusion Matrix
 conf_matrix_rnn_bow = confusion_matrix(y_test_label_bow, y_pred_rnn_labels_bow)
-sns.heatmap(conf_matrix_rnn_bow, annot=True, fmt='g')
+sns.heatmap(conf_matrix_rnn_bow, annot=True, fmt='g', cmap=rdgy_palette)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
 
 # Plotting accuracy curves
-plt.plot(history_rnn_bow.history['accuracy'])
-plt.plot(history_rnn_bow.history['val_accuracy'])
+plt.plot(history_rnn_bow.history['accuracy'], color=rdgy_palette[9])
+plt.plot(history_rnn_bow.history['val_accuracy'], color=rdgy_palette[0])
 plt.title('RNN Model Accuracy - BoW')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
@@ -623,8 +671,8 @@ plt.ylabel('Actual')
 plt.show()
 
 # Plotting accuracy curves
-plt.plot(history_rnn_tfidf.history['accuracy'])
-plt.plot(history_rnn_tfidf.history['val_accuracy'])
+plt.plot(history_rnn_tfidf.history['accuracy'], color=rdgy_palette[9])
+plt.plot(history_rnn_tfidf.history['val_accuracy'], color=rdgy_palette[0])
 plt.title('RNN Model Accuracy - tf-idf')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
@@ -668,8 +716,8 @@ plt.ylabel('Actual')
 plt.show()
 
 # Plotting accuracy curves
-plt.plot(history_rnn_emb.history['accuracy'])
-plt.plot(history_rnn_emb.history['val_accuracy'])
+plt.plot(history_rnn_emb.history['accuracy'], color=rdgy_palette[9])
+plt.plot(history_rnn_emb.history['val_accuracy'], color=rdgy_palette[0])
 plt.title('RNN Model Accuracy - embedding')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
@@ -736,8 +784,8 @@ plt.ylabel('Actual')
 plt.show()
 
 # plotting accuracy curves
-plt.plot(history_cnn_bow.history['accuracy'])
-plt.plot(history_cnn_bow.history['val_accuracy'])
+plt.plot(history_cnn_bow.history['accuracy'], color=rdgy_palette[9])
+plt.plot(history_cnn_bow.history['val_accuracy'], color=rdgy_palette[0])
 plt.title('CNN Model Accuracy - BoW')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
@@ -781,8 +829,8 @@ plt.ylabel('Actual')
 plt.show()
 
 # plotting accuracy curves
-plt.plot(history_cnn_tfidf.history['accuracy'])
-plt.plot(history_cnn_tfidf.history['val_accuracy'])
+plt.plot(history_cnn_tfidf.history['accuracy'], color=rdgy_palette[9])
+plt.plot(history_cnn_tfidf.history['val_accuracy'], color=rdgy_palette[0])
 plt.title('CNN Model Accuracy - tf-idf')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
@@ -831,8 +879,8 @@ plt.ylabel('Actual')
 plt.show()
 
 # plotting accuracy curves
-plt.plot(history_cnn_emb.history['accuracy'])
-plt.plot(history_cnn_emb.history['val_accuracy'])
+plt.plot(history_cnn_emb.history['accuracy'], color=rdgy_palette[9])
+plt.plot(history_cnn_emb.history['val_accuracy'], color=rdgy_palette[0])
 plt.title('CNN Model Accuracy - embedding')
 plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
