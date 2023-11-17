@@ -30,14 +30,16 @@ In order to achieve this predictive analysis, diverse ML models with differing d
 
 <b><u> SONA  </b></u>
 
-
-
+SONA, a pivotal event in the political programme of Parliament, serves as a presidential summary for the South African public. Specifically, the country’s current domestic affairs and international relations are reflected upon, past governmental work is perused, and future plans in terms of policies and civil projects are proposed. Through this address, accountability on the part of government is re-instilled and transparency with the public is re-affirmed on an annual basis, either once (non-election year) or twice (pre-and-post election) [@Muthambi2017].
 
 <h4> Data </h4>
 <hr>
 
 
 <b><u> Tokenization </b></u>
+
+The process of tokenization entails breaking up given text into units, referred to as tokens (or terms), which are meaningful for analysis [@Zhang2018]. In this case, these tokens take on different structures, based on either a macro-context (i.e., sentences) or micro-context (i.e., words). At both scales, the way in which these tokens are valued will be varied. The value will either be defined by a bag-of-words (BoW) or term-frequency, inverse-document-frequency (tf-idf) approach. The former way implicates accounting for the number of occurrences of some token in some document. On the other hand, the latter way not only regards the frequency of some token, but also the significance thereof. Thus, tf-idf involves the assignment of some weight to each token in a document which in turn reflects its importance relative to the entire collection of documents (corpus). It then follows that the tf-idf value of a token *t* in a document *d* within a corpus *D* is calculated as the product of two constituents. The first being tf(*t*,*d*) defined as the quotient of the frequency of token *t* in document *d* and the total number of tokens in document *d*, whereas the second is idf(*t*, *D*) denoted by the quotient of the natural logarithm of the total number of documents in corpus *D* and the number of documents containing the token *t* [@SilgeRobinson2017]. 
+
 
 <b><u> Pre-processing </b></u>
 
@@ -46,7 +48,9 @@ In order to achieve this predictive analysis, diverse ML models with differing d
 <hr>
 
 <b><u> Classification Tree (CT) </b></u>
-![Schematic representation of an exemplary CT.](CT.png){#fig-CT}
+
+
+![Schematic representation of an exemplary CT.](CT.png){height=300 #fig-CT}
 
 A classification tree (CT) [@Breiman1984] is a straightforward ML technique predominately applied in categorical prediction contexts. This simple model operates on the principle of segmenting some data into subsets, where these partitions are based on distinct values of individual features. It is naïve in its approach given it considers each feature in isolation in order to make classifying decisions, hence often overlooking complex feature interactions. 
 
@@ -57,7 +61,8 @@ CT hyperparameters comprise of the minimum number of samples required to split a
 CTs are superior in terms of its simplistic interpretability and visualization, though this advantage is tainted with its proneness to overfitting (with deep trees) and inability to capture feature complexity.  
 
 <b><u> Feed-forward Neural Network (NN) </b></u>
-![Schematic representation of an exemplary FNN](FNN.png){#fig-FNN}
+
+![Schematic representation of an exemplary FNN](FNN.png){height=500 width=500 #fig-FNN}
 
 A feed-forward Neural Network (FNN) is a type of artificial NN wherein connections between the nodes (neurons) do not form a cycle (uni-directional in nature). As depicted in @fig-FNN, this architecture is characterized by its stratified structure,  comprising of an input layer (grey circles), one or more hidden layers (white circles), and an output layer (black circles). In each layer, the nodes apply weights and biases to inputs before passing through an activation function.
 
@@ -69,8 +74,9 @@ In contrast to CTs, FNNs possess a higher aptitude to deal with feature intricac
 
 
 <b><u> Convolutional Neural Network (CNN) </b></u>
-![Schematic representation of an exemplary CNN.](CNN.png){#fig-CNN}
 
+
+![Schematic representation of an exemplary CNN.](CNN.png){#fig-CNN}
 
 Convolutional Neural Networks (CNNs), primarily applied within the field of image-processing, have also proven proficiency in processing natural language processing (NLP) tasks. CNNs are designed to adaptively learn spatial hierarchies of features from input data. In the context of text, this means the model is able to learn any recognizable patterns or sequences of words which carry significant semantic meaning.
 
@@ -82,7 +88,9 @@ CNNs are able to capture local dependencies in text-based data, allowing for mor
 
 
 <b><u> Recurrent Neural Network (RNN) </b></u>
-![Schematic representation of an exemplary RNN](RNN.png){#fig-RNN}
+
+
+![Schematic representation of an exemplary RNN.](RNN.png){height=200 width=450 #fig-RNN}
 
 Recurrent Neural Networks (RNNs) are designed to handle sequential data. This model shares a similar architecture to FNNs, as represented in @fig-RNN, with an exception of two differences. FNNs are uni-directional models, whilst RNNs are bi-directional in nature. For the latter model, this means that information from some nodes’ outputs are able to flow in a backward direction (represented as red arrows), affecting subsequent input to the same node. Moreover, RNNs share the same weight parameter within each layer unlike FNNs where different weights apply across each node.
 
