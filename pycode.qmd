@@ -21,8 +21,7 @@ Serving as a foundational-comparative model, a naive classification tree (CT) wa
 <hr> 
 The domains of machine learning (ML) and natural language processing (NLP) intersect at text-based analysis involving the underlying aim of prediction. In this instance, the text of interest to analyze are the annual State of the Nation Address (SONA) speeches (from 1994 to 2023), whilst the predictive objective is pointed at determining which one of the six different South African presidents (F.W. de Klerk, N.R. Mandela, T.M. Mbeki, K.P. Motlanthe, J.G. Zuma, and M.C. Ramaphosa) delivered some sentence contained therein. 
 
-In order to achieve this predictive analysis, diverse ML models with differing degrees of complexity are applied. First, in order to form a comparative basis for performance, a naïve classification tree is fitted. This is then followed with the implementation of three types of neural networks (NNs),each with ascending degrees of sophistication, specifically a simple one (feed-forward) and then more complex ones (convolutional and recurrent).
-
+In order to achieve this predictive analysis, diverse ML models with differing degrees of complexity are applied. First, in order to form a comparative basis for performance, a naïve classification tree is fitted. This is then followed with the implementation of three types of neural networks (NNs),each with ascending degrees of sophistication, specifically a simple one (feed-forward) and then more complex ones (recurrent and convolutional).
 
 
 <h4> Literature Review </h4> 
@@ -47,14 +46,18 @@ In order to achieve this predictive analysis, diverse ML models with differing d
 <hr>
 
 <b><u> Classification Tree (CT) </b></u>
+![Schematic representation of an exemplary CT.](CT.png){#fig-CT}
 
 <b><u> Feed-forward Neural Network (NN) </b></u>
+![Schematic representation of any FNN](FNN.png){#fig-FNN}
 
 <b><u> Convolutional Neural Network (CNN) </b></u>
+![Schematic representation of any CNN](CNN.png){#fig-CNN}
+
+<b><u> Recurrent Neural Network (RNN) </b></u>
+![Schematic representation of any RNN](RNN.png){#fig-RNN}
 
 <b><u> Model performance metrics </b></u>
-
-
 
 
 
@@ -89,6 +92,16 @@ from kerastuner.tuners import RandomSearch
 from tensorflow.keras.layers import LSTM, SpatialDropout1D
 import matplotlib.ticker as ticker
 from nltk.tokenize import word_tokenize
+from keras.layers import Input, Conv1D, GlobalMaxPooling1D, Dropout, Dense, Reshape
+from keras.models import Sequential
+from keras_tuner import RandomSearch
+
+# set global parameters
+plt.rcParams['font.family'] = 'Andale Mono'
+plt.rcParams['xtick.labelsize'] = 16
+plt.rcParams['ytick.labelsize'] = 16
+plt.rcParams['axes.labelsize'] = 20
+plt.rcParams['legend.fontsize'] = 18
 
 # set seeds for reproducibility purposes
 np.random.seed(5)
@@ -162,6 +175,8 @@ sona_sentences['cleaned_sentence'] = sona_sentences['cleaned_sentence'].apply(la
 <hr> 
 
 Figure 1 
+
+
 ```{python}
 #----------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot speech counts
@@ -172,20 +187,20 @@ president_num_speeches.columns = ['president', 'num_speeches']
 
 # setting a specific order for the presidents
 ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
-president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
+president_num_speeches['president'] = pd.Categorical(president_num_speeches['president'], categories=ordered_presidents, ordered=True)
 
 # sort the DataFrame based on the defined order
 president_num_speeches.sort_values('president', inplace=True)
 
 # plot the sentence counts
-plt.bar(president_num_speeches['president'], president_num_speeches['num_speeches'], color=rdgy_palette[1])
+plt.bar(president_num_speeches['president'], president_num_speeches['num_speeches'], color=rdgy_palette[2])
 
 # Customizing the plot
-plt.xlabel("President", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.ylabel("Number of Speeches", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.xticks(rotation=55, horizontalalignment='right', fontsize=11, fontweight='bold', family='Andale Mono')
-plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
-plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.xlabel("President", fontweight='bold', family='Andale Mono')
+plt.ylabel("Number of Speeches", fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
+plt.yticks(fontweight='bold', family='Andale Mono')
+plt.title("", fontweight='bold', ha='center')
 
 # Additional theme customizations
 plt.grid(False)
@@ -217,11 +232,11 @@ president_num_sentences.reset_index(drop=True, inplace=True)
 plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
 
 # customizing the sentence-count plot
-plt.xlabel("President", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.ylabel("Number of Sentences", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.xticks(rotation=55, horizontalalignment='right', fontsize=11, fontweight='bold', family='Andale Mono')
-plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
-plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.xlabel("President", fontweight='bold', family='Andale Mono')
+plt.ylabel("Number of Sentences", fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
+plt.yticks(fontweight='bold', family='Andale Mono')
+plt.title("", fontweight='bold', ha='center')
 plt.grid(False)
 plt.tight_layout()
 plt.show()
@@ -246,11 +261,11 @@ avg_sentence_length.sort_values('president', inplace=True)
 plt.bar(avg_sentence_length['president'], avg_sentence_length['av_sen_length'], color=rdgy_palette[9])
 
 # Customizing the plot
-plt.xlabel("President", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.ylabel("Mean Sentence Length (in words)", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.xticks(rotation=55, horizontalalignment='right', fontsize=11, fontweight='bold', family='Andale Mono')
-plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
-plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.xlabel("President", fontweight='bold', family='Andale Mono')
+plt.ylabel("Mean Sentence Length (in words)", fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
+plt.yticks(finallyontweight='bold', family='Andale Mono')
+plt.title("", fontweight='bold', ha='center')
 plt.grid(False)
 plt.tight_layout()
 plt.show()
@@ -284,18 +299,31 @@ plt.figure(figsize=(10, 6))
 sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
 
 # Customizing the plot
-plt.xlabel("Number of times word appears", fontsize=13, fontweight='bold')
-plt.ylabel("", fontsize=13, fontweight='bold', family='Andale Mono')
-plt.xticks(fontsize=11, fontweight='bold', family='Andale Mono')
-plt.yticks(fontsize=11, fontweight='bold', family='Andale Mono')
-plt.title("", fontsize=13, fontweight='bold', ha='center')
+plt.xlabel("Number of times word appears", fontweight='bold')
+plt.ylabel("", fontweight='bold', family='Andale Mono')
+plt.xticks(fontweight='bold', family='Andale Mono')
+plt.yticks(fontweight='bold', family='Andale Mono')
+plt.title("", fontweight='bold', ha='center')
 plt.grid(False)
 sns.set_style("whitegrid")
 plt.tight_layout()
 plt.show()
 
+# count the occurrences of each word
+word_counts_all = sona_words['word'].value_counts().head(15)
 
+# Sort the words for better visualization
+word_counts_all = word_counts_all.sort_values()
 
+# Assuming 'president' is a column in the sona_words DataFrame
+# Filter the top 15 words for each president
+top_words_per_president = sona_words.groupby('president')['word'].value_counts().groupby(level=0).head(15).reset_index(name='count')
+
+# Create a facetted bar plot
+g = sns.catplot(x='count', y='word', col='president', col_wrap=4, data=top_words_per_president, kind='bar', palette=rdgy_palette)
+g.set_axis_labels("Number of times word appears", "")
+g.set_titles("{col_name}")
+plt.show()
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -347,7 +375,6 @@ X_val_emb, X_test_emb = train_test_split(X_temp_emb, test_size=0.5, random_state
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
-
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Classification tree  ~ for BoW approach
@@ -365,9 +392,9 @@ print(classification_report(y_test, y_pred_tree_bow))
 
 # confusion matrix
 conf_matrix_tree_bow = confusion_matrix(y_test, y_pred_tree_bow)
-sns.heatmap(conf_matrix_tree_bow, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
+sns.heatmap(conf_matrix_tree_bow, annot=True, fmt='g',cmap=rdgy_palette)
+plt.xlabel('Predicted', fontweight='bold', family='Andale Mono')
+plt.ylabel('Actual', fontweight='bold', family='Andale Mono')
 plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 ```
@@ -410,7 +437,7 @@ tree_clf_emb.fit(X_train_emb, y_train)
 y_pred_tree_emb = tree_clf_emb.predict(X_test_emb)
 print("Best parameters:", tree_clf_emb.best_params_)
 print("\nClassification Report (Classification Tree - embedding):")
-print(classification_report(y_test, y_pred_tree_tfidf))
+print(classification_report(y_test, y_pred_tree_emb))
 
 # confusion matrix
 conf_matrix_tree_emb = confusion_matrix(y_test, y_pred_tree_emb)
@@ -493,181 +520,27 @@ sns.heatmap(conf_matrix_fnn_emb, annot=True, fmt='g')
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.show()
+
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
+
 
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ for BoW approach
+#  Recurrent neural network ~ defined for all approaches
 #---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-# define CNN 
-def build_cnn_model(hp):
+def build_rnn_model(hp):
     model = Sequential()
     model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(Conv1D(filters=hp.Int('filters', min_value=64, max_value=256, step=64), kernel_size=hp.Choice('kernel_size', values=[3, 5, 7]), activation='relu'))
-    model.add(GlobalMaxPooling1D())
-    model.add(Dropout(rate=hp.Float('dropout', min_value=0, max_value=0.5, step=0.1)))
+    model.add(SpatialDropout1D(hp.Float('spatial_dropout', min_value=0.0, max_value=0.5, step=0.1)))
+    model.add(LSTM(units=hp.Int('lstm_units', min_value=50, max_value=150, step=25), dropout=hp.Float('dropout', min_value=0.0, max_value=0.5, step=0.1), recurrent_dropout=hp.Float('recurrent_dropout', min_value=0.0, max_value=0.5, step=0.1)))
     model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
-# CNN tuner
-cnn_tuner_bow = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='cnn_tuner', project_name='CNNHyperparamTuning')
-cnn_tuner_bow.search(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_bow = cnn_tuner_bow.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_bow = build_cnn_model(best_hps_cnn_bow)
-history_cnn_bow = best_cnn_model_bow.fit(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
-
-# predictions and evaluation
-y_pred_cnn_bow = best_cnn_model_bow.predict(X_test_bow)
-y_pred_cnn_labels_bow = np.argmax(y_pred_cnn_bow, axis=1)
-y_test_labels_bow = np.argmax(y_test_nn, axis=1)
-
-print("\nClassification Report (CNN - BoW):")
-print(classification_report(y_test_labels_bow, y_pred_cnn_labels_bow))
-
-# confusion matrix
-conf_matrix_cnn_bow = confusion_matrix(y_test_labels_bow, y_pred_cnn_labels_bow)
-sns.heatmap(conf_matrix_cnn_bow, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
-# plotting accuracy curves
-plt.plot(history_cnn_bow.history['accuracy'])
-plt.plot(history_cnn_bow.history['val_accuracy'])
-plt.title('CNN Model Accuracy - BoW')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
-#---------------------------------------------------------------------------------------------------------------------------
 ```
-
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ for tf-idf approach
-#---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-# define CNN 
-def build_cnn_model(hp):
-    model = Sequential()
-    model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(Conv1D(filters=hp.Int('filters', min_value=64, max_value=256, step=64), kernel_size=hp.Choice('kernel_size', values=[3, 5, 7]), activation='relu'))
-    model.add(GlobalMaxPooling1D())
-    model.add(Dropout(rate=hp.Float('dropout', min_value=0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-# CNN tuner
-cnn_tuner_tfidf = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='cnn_tuner', project_name='CNNHyperparamTuning')
-cnn_tuner_tfidf.search(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
-history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
-
-# predictions and evaluation
-y_pred_cnn_tfidf = best_cnn_model_tfidf.predict(X_test_tfidf)
-y_pred_cnn_labels_tfidf = np.argmax(y_pred_cnn_tfidf, axis=1)
-y_test_labels_tfidf = np.argmax(y_test_nn, axis=1)
-
-print("\nClassification Report (CNN - tf-idf):")
-print(classification_report(y_test_labels_tfidf, y_pred_cnn_labels_tfidf))
-
-# confusion matrix
-conf_matrix_cnn_tfidf = confusion_matrix(y_test_labels_tfidf, y_pred_cnn_labels_tfidf)
-sns.heatmap(conf_matrix_cnn_tfidf, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
-# plotting accuracy curves
-plt.plot(history_cnn_tfidf.history['accuracy'])
-plt.plot(history_cnn_tfidf.history['val_accuracy'])
-plt.title('CNN Model Accuracy - tf-idf')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
-#---------------------------------------------------------------------------------------------------------------------------
-```
-
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ for embedding approach
-#---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-# define CNN 
-def build_cnn_model(hp):
-    model = Sequential()
-    model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(Conv1D(filters=hp.Int('filters', min_value=64, max_value=256, step=64), kernel_size=hp.Choice('kernel_size', values=[3, 5, 7]), activation='relu'))
-    model.add(GlobalMaxPooling1D())
-    model.add(Dropout(rate=hp.Float('dropout', min_value=0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-# CNN tuner
-cnn_tuner_emb = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=10, executions_per_trial=5, directory='cnn_tuner', project_name='CNNHyperparamTuning')
-cnn_tuner_emb.search(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_emb = cnn_tuner_emb.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_emb = build_cnn_model(best_hps_cnn_emb)
-history_cnn_emb = best_cnn_model_emb.fit(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
-history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
-
-# predictions and evaluation
-y_pred_cnn_emb = best_cnn_model_emb.predict(X_test_emb)
-y_pred_cnn_labels_emb = np.argmax(y_pred_cnn_emb, axis=1)
-y_test_labels_emb = np.argmax(y_test_nn, axis=1)
-
-print("\nClassification Report (CNN - embedding):")
-print(classification_report(y_test_labels_emb, y_pred_cnn_labels_emb))
-
-# confusion matrix
-conf_matrix_cnn_emb = confusion_matrix(y_test_labels_emb, y_pred_cnn_labels_emb)
-sns.heatmap(conf_matrix_cnn_emb, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
-# plotting accuracy curves
-plt.plot(history_cnn_emb.history['accuracy'])
-plt.plot(history_cnn_emb.history['val_accuracy'])
-plt.title('CNN Model Accuracy - embedding')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
-```
-
 
 
 ```{python}
@@ -678,15 +551,6 @@ plt.show()
 y_train_nn = to_categorical(pd.factorize(y_train)[0])
 y_val_nn = to_categorical(pd.factorize(y_val)[0])
 y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-def build_rnn_model(hp):
-    model = Sequential()
-    model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(SpatialDropout1D(hp.Float('spatial_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(LSTM(units=hp.Int('lstm_units', min_value=50, max_value=150, step=25), dropout=hp.Float('dropout', min_value=0.0, max_value=0.5, step=0.1), recurrent_dropout=hp.Float('recurrent_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
 
 # RNN Tuner
 rnn_tuner_bow = RandomSearch(build_rnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='rnn_tuner', project_name='RNNHyperparamTuning')
@@ -734,15 +598,6 @@ y_train_nn = to_categorical(pd.factorize(y_train)[0])
 y_val_nn = to_categorical(pd.factorize(y_val)[0])
 y_test_nn = to_categorical(pd.factorize(y_test)[0])
 
-def build_rnn_model(hp):
-    model = Sequential()
-    model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(SpatialDropout1D(hp.Float('spatial_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(LSTM(units=hp.Int('lstm_units', min_value=50, max_value=150, step=25), dropout=hp.Float('dropout', min_value=0.0, max_value=0.5, step=0.1), recurrent_dropout=hp.Float('recurrent_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
 # RNN Tuner
 rnn_tuner_tfidf = RandomSearch(build_rnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='rnn_tuner', project_name='RNNHyperparamTuning')
 rnn_tuner_tfidf.search(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
@@ -779,7 +634,6 @@ plt.show()
 ```
 
 
-
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for embedding approach
@@ -788,15 +642,6 @@ plt.show()
 y_train_nn = to_categorical(pd.factorize(y_train)[0])
 y_val_nn = to_categorical(pd.factorize(y_val)[0])
 y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-def build_rnn_model(hp):
-    model = Sequential()
-    model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(SpatialDropout1D(hp.Float('spatial_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(LSTM(units=hp.Int('lstm_units', min_value=50, max_value=150, step=25), dropout=hp.Float('dropout', min_value=0.0, max_value=0.5, step=0.1), recurrent_dropout=hp.Float('recurrent_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
 
 # RNN Tuner
 rnn_tuner_emb = RandomSearch(build_rnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='rnn_tuner', project_name='RNNHyperparamTuning')
@@ -834,6 +679,166 @@ plt.show()
 ```
 
 
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+#  Convolutional neural network ~ defined for all approaches
+#---------------------------------------------------------------------------------------------------------------------------
+# define CNN 
+def build_cnn_model(hp):
+    model = Sequential()
+    model.add(Input(shape=(150,)))  # Adjust to the shape of your Word2Vec embeddings
+    model.add(Reshape((150, 1)))  # Add a reshape layer to make it compatible with Conv1D
+    model.add(Conv1D(filters=hp.Int('filters', min_value=64, max_value=256, step=64), 
+                     kernel_size=hp.Choice('kernel_size', values=[3, 5, 7]), 
+                     activation='relu'))
+    model.add(GlobalMaxPooling1D())
+    model.add(Dropout(rate=hp.Float('dropout', min_value=0, max_value=0.5, step=0.1)))
+    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
+```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# Convolutional neural network ~ for BoW approach
+#---------------------------------------------------------------------------------------------------------------------------
+# prepare features 
+y_train_nn = to_categorical(pd.factorize(y_train)[0])
+y_val_nn = to_categorical(pd.factorize(y_val)[0])
+y_test_nn = to_categorical(pd.factorize(y_test)[0])
+
+
+# CNN tuner
+cnn_tuner_bow = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='cnn_tuner', project_name='CNNHyperparamTuning')
+cnn_tuner_bow.search(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
+
+# fit best CNN model 
+best_hps_cnn_bow = cnn_tuner_bow.get_best_hyperparameters(num_trials=1)[0]
+best_cnn_model_bow = build_cnn_model(best_hps_cnn_bow)
+history_cnn_bow = best_cnn_model_bow.fit(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
+
+# predictions and evaluation
+y_pred_cnn_bow = best_cnn_model_bow.predict(X_test_bow)
+y_pred_cnn_labels_bow = np.argmax(y_pred_cnn_bow, axis=1)
+y_test_labels_bow = np.argmax(y_test_nn, axis=1)
+
+print("\nClassification Report (CNN - BoW):")
+print(classification_report(y_test_labels_bow, y_pred_cnn_labels_bow))
+
+# confusion matrix
+conf_matrix_cnn_bow = confusion_matrix(y_test_labels_bow, y_pred_cnn_labels_bow)
+sns.heatmap(conf_matrix_cnn_bow, annot=True, fmt='g')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+# plotting accuracy curves
+plt.plot(history_cnn_bow.history['accuracy'])
+plt.plot(history_cnn_bow.history['val_accuracy'])
+plt.title('CNN Model Accuracy - BoW')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+#---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# Convolutional neural network ~ for tf-idf approach
+#---------------------------------------------------------------------------------------------------------------------------
+# prepare features 
+y_train_nn = to_categorical(pd.factorize(y_train)[0])
+y_val_nn = to_categorical(pd.factorize(y_val)[0])
+y_test_nn = to_categorical(pd.factorize(y_test)[0])
+
+# CNN tuner
+cnn_tuner_tfidf = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='cnn_tuner', project_name='CNNHyperparamTuning')
+cnn_tuner_tfidf.search(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
+
+# fit best CNN model 
+best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
+best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
+history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
+
+# predictions and evaluation
+y_pred_cnn_tfidf = best_cnn_model_tfidf.predict(X_test_tfidf)
+y_pred_cnn_labels_tfidf = np.argmax(y_pred_cnn_tfidf, axis=1)
+y_test_labels_tfidf = np.argmax(y_test_nn, axis=1)
+
+print("\nClassification Report (CNN - tf-idf):")
+print(classification_report(y_test_labels_tfidf, y_pred_cnn_labels_tfidf))
+
+# confusion matrix
+conf_matrix_cnn_tfidf = confusion_matrix(y_test_labels_tfidf, y_pred_cnn_labels_tfidf)
+sns.heatmap(conf_matrix_cnn_tfidf, annot=True, fmt='g')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+# plotting accuracy curves
+plt.plot(history_cnn_tfidf.history['accuracy'])
+plt.plot(history_cnn_tfidf.history['val_accuracy'])
+plt.title('CNN Model Accuracy - tf-idf')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+#---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# Convolutional neural network ~ for embedding approach
+#---------------------------------------------------------------------------------------------------------------------------
+# prepare features 
+y_train_nn = to_categorical(pd.factorize(y_train)[0])
+y_val_nn = to_categorical(pd.factorize(y_val)[0])
+y_test_nn = to_categorical(pd.factorize(y_test)[0])
+
+# CNN tuner
+cnn_tuner_emb = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=10, executions_per_trial=5, directory='cnn_tuner', project_name='CNNHyperparamTuning')
+cnn_tuner_emb.search(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
+
+# fit best CNN model 
+best_hps_cnn_emb = cnn_tuner_emb.get_best_hyperparameters(num_trials=1)[0]
+best_cnn_model_emb = build_cnn_model(best_hps_cnn_emb)
+history_cnn_emb = best_cnn_model_emb.fit(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
+
+# fit best CNN model 
+best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
+best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
+history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
+
+# predictions and evaluation
+y_pred_cnn_emb = best_cnn_model_emb.predict(X_test_emb)
+y_pred_cnn_labels_emb = np.argmax(y_pred_cnn_emb, axis=1)
+y_test_labels_emb = np.argmax(y_test_nn, axis=1)
+
+print("\nClassification Report (CNN - embedding):")
+print(classification_report(y_test_labels_emb, y_pred_cnn_labels_emb))
+
+# confusion matrix
+conf_matrix_cnn_emb = confusion_matrix(y_test_labels_emb, y_pred_cnn_labels_emb)
+sns.heatmap(conf_matrix_cnn_emb, annot=True, fmt='g')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+
+# plotting accuracy curves
+plt.plot(history_cnn_emb.history['accuracy'])
+plt.plot(history_cnn_emb.history['val_accuracy'])
+plt.title('CNN Model Accuracy - embedding')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+```
 
 
 

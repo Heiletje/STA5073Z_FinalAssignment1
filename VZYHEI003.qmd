@@ -364,7 +364,6 @@ freq_words_bypresident
 
 
 
-
 ```{r}
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # create three different data structures: bag-of-words, tf-idf, and embeddings

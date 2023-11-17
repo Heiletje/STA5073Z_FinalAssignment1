@@ -1,0 +1,38 @@
+---
+title: "Code"
+format: html
+execute: 
+  echo: true
+  cache: true
+  eval: false
+  result: false
+  output: false
+---
+
+<h4> Data pre-processing </h4> 
+<hr>
+
+<h4> Exploratory data analysis </h4> 
+<hr>
+
+<h4> Training, validation, testing splits </h4> 
+<hr>
+
+<h4> Feature creation </h4> 
+<hr>
+
+
+<h4> Classification trees </h4> 
+<hr>
+
+<h4> Feed-forward Neural Network </h4> 
+<hr>
+
+<h4> Recurrent Neural Network </h4> 
+<hr>
+
+<h4> Convolutional Neural Network </h4> 
+<hr>
+
+
+

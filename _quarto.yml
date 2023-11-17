@@ -8,7 +8,8 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - VZYHEI003.qmd
+      - pycode.qmd
+      - code_appendix.qmd
       - plaigarism_declaration.qmd
 
 format:
