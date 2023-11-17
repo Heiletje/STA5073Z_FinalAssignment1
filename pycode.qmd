@@ -6,6 +6,8 @@ execute:
   echo: false
   cache: true
   freeze: auto
+  output: false
+  eval: false
 ---
 
 
@@ -62,7 +64,7 @@ CTs are superior in terms of its simplistic interpretability and visualization, 
 
 <b><u> Feed-forward Neural Network (NN) </b></u>
 
-![Schematic representation of an exemplary FNN](FNN.png){height=500 width=500 #fig-FNN}
+![Schematic representation of an exemplary FNN](FNN.png){height=200 width=450 #fig-FNN}
 
 A feed-forward Neural Network (FNN) is a type of artificial NN wherein connections between the nodes (neurons) do not form a cycle (uni-directional in nature). As depicted in @fig-FNN, this architecture is characterized by its stratified structure,  comprising of an input layer (grey circles), one or more hidden layers (white circles), and an output layer (black circles). In each layer, the nodes apply weights and biases to inputs before passing through an activation function.
 
@@ -147,6 +149,7 @@ from tensorflow.keras.layers import LSTM, SpatialDropout1D
 import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tabulate import tabulate
 
 # set global parameters
 plt.rcParams['font.family'] = 'Andale Mono'
@@ -458,6 +461,9 @@ X_val_rnnemb, X_test_rnnemb, y_val, y_test = train_test_split(X_temp_rnnemb, y_t
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
+
+
+
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Classification tree ~ define general function for all approaches
@@ -483,15 +489,15 @@ def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, featu
     # Predictions and evaluation on test set
     y_pred_tree_test = tree_clf.predict(X_test)
     print(f"Best parameters ({feature_set_name}):", tree_clf.best_params_)
+
+    # Generate and display formatted classification report
+    report = classification_report(y_test, y_pred_tree_test, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    formatted_report = format_classification_report(report_df)
     print(f"\nClassification Report on Test Set (Classification Tree - {feature_set_name}):")
-    print(classification_report(y_test, y_pred_tree_test))
+    print(formatted_report)
 
-    # Predictions and evaluation on validation set
-    y_pred_tree_val = tree_clf.predict(X_val)
-    print(f"\nClassification Report on Validation Set (Classification Tree - {feature_set_name}):")
-    print(classification_report(y_val, y_pred_tree_val))
-
-    # Confusion matrix for test set
+    # Plot and display confusion matrix
     conf_matrix_tree_test = confusion_matrix(y_test, y_pred_tree_test)
     sns.heatmap(conf_matrix_tree_test, annot=True, fmt='g', cmap=rdgy_palette)
     plt.xlabel('Predicted')
@@ -499,7 +505,7 @@ def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, featu
     plt.title(f'Confusion Matrix on Test Set - {feature_set_name}')
     plt.show()
 
-    # Extract and plot results
+    # Extract, plot, and save CV results heatmap
     results = tree_clf.cv_results_
     df = pd.DataFrame({
         'max_depth': results['param_max_depth'],
@@ -509,13 +515,24 @@ def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, featu
     pivoted = df.pivot(index='max_depth', columns='min_samples_split', values='mean_test_score')
 
     plt.figure(figsize=(8, 6))
-    # Format the annotations to display up to four decimal places
     sns.heatmap(pivoted, annot=True, fmt=".4f", cmap=rdgy_palette)
     plt.title(f'Mean CV Score Heatmap - {feature_set_name}')
     plt.xlabel('Min Samples Split')
     plt.ylabel('Max Depth')
     plt.savefig(plot_path)
     plt.show()
+
+def format_classification_report(report_df):
+    # Format the DataFrame for better readability
+    report_df['precision'] = report_df['precision'].apply(lambda x: f"{x:.2f}")
+    report_df['recall'] = report_df['recall'].apply(lambda x: f"{x:.2f}")
+    report_df['f1-score'] = report_df['f1-score'].apply(lambda x: f"{x:.2f}")
+    report_df['support'] = report_df['support'].apply(lambda x: f"{int(x)}")
+
+    # Convert to a table format using tabulate
+    table = tabulate(report_df, headers='keys', tablefmt='psql', showindex=True)
+
+    return table
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -582,7 +599,7 @@ def train_and_evaluate_model(X_train, X_val, X_test, y_train, y_val, y_test, hid
 
     num_classes = len(np.unique(y_train_encoded))
 
-    # Check if model and history already exist
+    # Define model and history paths
     model_path = os.path.join(results_dir, f'model_{feature_set_name}_{hidden_layer_sizes}_{activation}.h5')
     history_path = os.path.join(results_dir, f'history_{feature_set_name}_{hidden_layer_sizes}_{activation}.pkl')
 
@@ -590,48 +607,57 @@ def train_and_evaluate_model(X_train, X_val, X_test, y_train, y_val, y_test, hid
         model = tf.keras.models.load_model(model_path)
         history = joblib.load(history_path)
     else:
-        # Create and train the model
+        # Create, train, and save the model
         model = create_model(hidden_layer_sizes, activation, (X_train.shape[1],), num_classes)
         history = model.fit(X_train, y_train_encoded, validation_data=(X_val, y_val_encoded), epochs=epochs, batch_size=batch_size, verbose=0)
-
-        # Save the model and history
         os.makedirs(results_dir, exist_ok=True)
         model.save(model_path)
         joblib.dump(history.history, history_path)
 
-    
-    # Check if history is a dict (loaded from file) or a History object (from training)
-    if isinstance(history, dict):
-        loss = history['loss']
-        val_loss = history['val_loss']
-    else:  # If it's a History object
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
+    # Extract loss values
+    loss = history['loss'] if isinstance(history, dict) else history.history['loss']
+    val_loss = history['val_loss'] if isinstance(history, dict) else history.history['val_loss']
 
     # Plot training & validation loss values
-    plt.plot(loss)
-    plt.plot(val_loss)
+    plt.plot(loss, label='Train', linestyle='-', color='r')
+    plt.plot(val_loss, label='Validation', linestyle='--', color='gray')
     plt.title(f'Model Loss - {feature_set_name} - {hidden_layer_sizes} - {activation}')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.legend(loc='upper left')
+    plt.grid(True)
     plt.show()
 
-    # Evaluate the model on the test set
+    # Evaluate the model and print classification report
     y_pred_encoded = np.argmax(model.predict(X_test), axis=1)
     y_pred = label_encoder.inverse_transform(y_pred_encoded)
+    report = classification_report(y_test, y_pred, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    formatted_report = format_classification_report(report_df)
     print(f"\nClassification Report ({feature_set_name} - {hidden_layer_sizes} - {activation}):")
-    print(classification_report(y_test, y_pred))
+    print(formatted_report)
 
-    # Confusion Matrix
+    # Plot and display confusion matrix
     conf_matrix = confusion_matrix(y_test, y_pred)
-    sns.heatmap(conf_matrix, annot=True, fmt='g')
+    sns.heatmap(conf_matrix, annot=True, fmt='g', cmap=rdgy_palette)
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title(f'Confusion Matrix - {feature_set_name} - {hidden_layer_sizes} - {activation}')
     plt.show()
 
     return model, history
+
+def format_classification_report(report_df):
+    # Format the DataFrame for better readability
+    report_df['precision'] = report_df['precision'].apply(lambda x: f"{x:.2f}")
+    report_df['recall'] = report_df['recall'].apply(lambda x: f"{x:.2f}")
+    report_df['f1-score'] = report_df['f1-score'].apply(lambda x: f"{x:.2f}")
+    report_df['support'] = report_df['support'].apply(lambda x: f"{int(x)}")
+
+    # Convert to a table format using tabulate
+    table = tabulate(report_df, headers='keys', tablefmt='psql', showindex=True)
+
+    return table
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -652,7 +678,6 @@ for hidden_layers in fnn_params:
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
-
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Feed-forward neural network ~ for tf-idf approach
@@ -665,7 +690,6 @@ for hidden_layers in fnn_params:
     for activation in activations:
         print(f"\nTraining model with {hidden_layers} hidden layers and {activation} activation")
         train_and_evaluate_model(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val, y_test, hidden_layers, activation, 'tf-idf')
-
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
@@ -711,7 +735,7 @@ def train_and_evaluate_cnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
 
     num_classes = len(np.unique(y_train_encoded))
 
-    # Check if model and history already exist
+    # Define model and history paths
     model_path = os.path.join(results_dir, f'cnn_model_{feature_set_name}_{filters}_{kernel_size}_{dropout_rate}.h5')
     history_path = os.path.join(results_dir, f'cnn_history_{feature_set_name}_{filters}_{kernel_size}_{dropout_rate}.pkl')
 
@@ -719,47 +743,57 @@ def train_and_evaluate_cnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
         model = tf.keras.models.load_model(model_path)
         history = joblib.load(history_path)
     else:
-        # Create and train the model
+        # Create, train, and save the model
         model = create_cnn_model((X_train.shape[1],), num_classes, filters, kernel_size, dropout_rate)
         history = model.fit(X_train, y_train_encoded, validation_data=(X_val, y_val_encoded), epochs=epochs, batch_size=batch_size, verbose=0)
-
-        # Save the model and history
         os.makedirs(results_dir, exist_ok=True)
         model.save(model_path)
         joblib.dump(history.history, history_path)
 
-    # Check if history is a dict (loaded from file) or a History object (from training)
-    if isinstance(history, dict):
-        loss = history['loss']
-        val_loss = history['val_loss']
-    else:  # If it's a History object
-        loss = history.history['loss']
-        val_loss = history.history['val_loss']
+    # Extract loss values
+    loss = history['loss'] if isinstance(history, dict) else history.history['loss']
+    val_loss = history['val_loss'] if isinstance(history, dict) else history.history['val_loss']
 
     # Plot training & validation loss values
-    plt.plot(loss)
-    plt.plot(val_loss)
+    plt.plot(loss, label='Train', linestyle='-', color='r')
+    plt.plot(val_loss, label='Validation', linestyle='--', color='gray')
     plt.title(f'CNN Model Loss - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.legend(loc='upper left')
+    plt.grid(True)
     plt.show()
 
-    # Evaluate the model on the test set
+    # Evaluate the model and print classification report
     y_pred_encoded = np.argmax(model.predict(X_test), axis=1)
     y_pred = label_encoder.inverse_transform(y_pred_encoded)
+    report = classification_report(y_test, y_pred, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    formatted_report = format_classification_report(report_df)
     print(f"\nClassification Report (CNN - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}):")
-    print(classification_report(y_test, y_pred))
+    print(formatted_report)
 
-    # Confusion Matrix
+    # Plot and display confusion matrix
     conf_matrix = confusion_matrix(y_test, y_pred)
-    sns.heatmap(conf_matrix, annot=True, fmt='g')
+    sns.heatmap(conf_matrix, annot=True, fmt='g', cmap=rdgy_palette)
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title(f'CNN Confusion Matrix - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}')
     plt.show()
 
     return model, history
+
+def format_classification_report(report_df):
+    # Format the DataFrame for better readability
+    report_df['precision'] = report_df['precision'].apply(lambda x: f"{x:.2f}")
+    report_df['recall'] = report_df['recall'].apply(lambda x: f"{x:.2f}")
+    report_df['f1-score'] = report_df['f1-score'].apply(lambda x: f"{x:.2f}")
+    report_df['support'] = report_df['support'].apply(lambda x: f"{int(x)}")
+
+    # Convert to a table format using tabulate
+    table = tabulate(report_df, headers='keys', tablefmt='psql', showindex=True)
+
+    return table
 
 
 # Define a small set of hyperparameters for the search
@@ -770,11 +804,11 @@ dropout_rate_options = [0.2, 0.5]  # Dropout rates
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
-
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Convolutional neural network ~ for BoW approach
 #---------------------------------------------------------------------------------------------------------------------------
+
 # Define other parameters
 feature_set_name = "BoW" 
 epochs = 10  
@@ -810,9 +844,13 @@ for filters in filters_options:
 # Sort the results by the best validation accuracy
 search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Print the results
+# Prepare data for tabulation
+table_data = []
 for result in search_results:
-    print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
+    table_data.append([result['filters'], result['kernel_size'], result['dropout_rate'], f"{result['best_val_accuracy']:.4f}"])
+
+# Print the formatted table
+print(tabulate(table_data, headers=['Filters', 'Kernel Size', 'Dropout Rate', 'Best Val Accuracy'], tablefmt='psql'))
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
@@ -857,9 +895,13 @@ for filters in filters_options:
 # Sort the results by the best validation accuracy
 search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Print the results
+# Prepare data for tabulation
+table_data = []
 for result in search_results:
-    print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
+    table_data.append([result['filters'], result['kernel_size'], result['dropout_rate'], f"{result['best_val_accuracy']:.4f}"])
+
+# Print the formatted table
+print(tabulate(table_data, headers=['Filters', 'Kernel Size', 'Dropout Rate', 'Best Val Accuracy'], tablefmt='psql'))
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -904,10 +946,14 @@ for filters in filters_options:
 # Sort the results by the best validation accuracy
 search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Print the results
+# Prepare data for tabulation
+table_data = []
 for result in search_results:
-    print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
-#---------------------------------------------------------------------------------------------------------------------------
+    table_data.append([result['filters'], result['kernel_size'], result['dropout_rate'], f"{result['best_val_accuracy']:.4f}"])
+
+# Print the formatted table
+print(tabulate(table_data, headers=['Filters', 'Kernel Size', 'Dropout Rate', 'Best Val Accuracy'], tablefmt='psql'))
+
 ```
 
 ```{python}
@@ -941,7 +987,7 @@ def train_and_evaluate_rnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
 
     num_classes = y_train_encoded.shape[1]
 
-    # Check if model and history already exist
+    # Define model and history paths
     model_path = os.path.join(results_dir, f'rnn_model_{feature_set_name}_{lstm_units}_{spatial_dropout}_{dropout}_{recurrent_dropout}.h5')
     history_path = os.path.join(results_dir, f'rnn_history_{feature_set_name}_{lstm_units}_{spatial_dropout}_{dropout}_{recurrent_dropout}.pkl')
 
@@ -949,54 +995,62 @@ def train_and_evaluate_rnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
         model = tf.keras.models.load_model(model_path)
         history = joblib.load(history_path)
     else:
-        # Create and train the model
-        if feature_set_name == 'Embedding':
-            input_shape = (X_train.shape[1], X_train.shape[2])  # (118, 150)
-            model = build_rnn_model2(num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout, input_shape)
-        else:
-            model = build_rnn_model((X_train.shape[1],), num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout)
+        # Create, train, and save the model
+        model = build_rnn_model((X_train.shape[1],), num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout)
         history = model.fit(X_train, y_train_encoded, validation_data=(X_val, y_val_encoded), epochs=epochs, batch_size=batch_size, verbose=0)
-
-        # Save the model and history
         os.makedirs(results_dir, exist_ok=True)
         model.save(model_path)
         joblib.dump(history.history, history_path)
 
-    # Plotting training & validation accuracy values
-    if isinstance(history, dict):
-        accuracy = history['accuracy']
-        val_accuracy = history['val_accuracy']
-    else:  # If it's a History object
-        accuracy = history.history['accuracy']
-        val_accuracy = history.history['val_accuracy']
+    # Extract accuracy values
+    accuracy = history['accuracy'] if isinstance(history, dict) else history.history['accuracy']
+    val_accuracy = history['val_accuracy'] if isinstance(history, dict) else history.history['val_accuracy']
 
-    plt.plot(accuracy)
-    plt.plot(val_accuracy)
+    # Plot training & validation accuracy values
+    plt.plot(accuracy, label='Train', linestyle='-', color='r')
+    plt.plot(val_accuracy, label='Validation', linestyle='--', color='gray')
     plt.title(f'RNN Model Accuracy - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.legend(loc='upper left')
+    plt.grid(True)
     plt.show()
 
-    # Evaluate the model on the test set
+    # Evaluate the model and print classification report
     y_pred_encoded = np.argmax(model.predict(X_test), axis=1)
     y_pred = label_encoder.inverse_transform(y_pred_encoded)
+    report = classification_report(y_test, y_pred, output_dict=True)
+    report_df = pd.DataFrame(report).transpose()
+    formatted_report = format_classification_report(report_df)
     print(f"\nClassification Report (RNN - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}):")
-    print(classification_report(y_test, y_pred))
+    print(formatted_report)
 
-    # Confusion Matrix
+    # Plot and display confusion matrix
     conf_matrix = confusion_matrix(y_test, y_pred)
-    sns.heatmap(conf_matrix, annot=True, fmt='g')
+    sns.heatmap(conf_matrix, annot=True, fmt='g', cmap=rdgy_palette)
     plt.xlabel('Predicted')
     plt.ylabel('Actual')
     plt.title(f'RNN Confusion Matrix - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}')
+
     plt.show()
 
     return model, history
 
+def format_classification_report(report_df):
+    # Format the DataFrame for better readability
+    report_df['precision'] = report_df['precision'].apply(lambda x: f"{x:.2f}")
+    report_df['recall'] = report_df['recall'].apply(lambda x: f"{x:.2f}")
+    report_df['f1-score'] = report_df['f1-score'].apply(lambda x: f"{x:.2f}")
+    report_df['support'] = report_df['support'].apply(lambda x: f"{int(x)}")
+
+    # Convert to a table format using tabulate
+    table = tabulate(report_df, headers='keys', tablefmt='psql', showindex=True)
+
+    return table
+
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
-
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
@@ -1045,13 +1099,22 @@ for lstm_units in lstm_units_options:
 # Sort the results by the best validation accuracy
 search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Print the results
+# Prepare data for tabulation
+table_data = []
 for result in search_results:
-    print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
+    table_data.append([
+        result['lstm_units'], 
+        result['spatial_dropout'], 
+        result['dropout'], 
+        result['recurrent_dropout'], 
+        f"{result['best_val_accuracy']:.4f}"
+    ])
+
+# Print the formatted table
+print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 'Recurrent Dropout', 'Best Val Accuracy'], tablefmt='psql'))
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
-
 
 
 ```{python}
@@ -1101,9 +1164,19 @@ for lstm_units in lstm_units_options:
 # Sort the results by the best validation accuracy
 search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Print the results
+# Prepare data for tabulation
+table_data = []
 for result in search_results:
-    print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
+    table_data.append([
+        result['lstm_units'], 
+        result['spatial_dropout'], 
+        result['dropout'], 
+        result['recurrent_dropout'], 
+        f"{result['best_val_accuracy']:.4f}"
+    ])
+
+# Print the formatted table
+print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 'Recurrent Dropout', 'Best Val Accuracy'], tablefmt='psql'))
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -1113,63 +1186,69 @@ for result in search_results:
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for embedding approach
 #---------------------------------------------------------------------------------------------------------------------------
-# # Define other parameters
-# feature_set_name = "Embedding" 
-# epochs = 10  
-# batch_size = 32 
-# results_dir = "rnn_emb_results"
+# Define other parameters
+feature_set_name = "Embedding" 
+epochs = 10  
+batch_size = 32 
+results_dir = "rnn_emb_results"
 
-# # Hyperparameter options for RNN
-# lstm_units_options = [50, 75]
-# spatial_dropout_options = [0.0, 0.2]
-# dropout_options = [0.2]
-# recurrent_dropout_options = [0.2]
+# Hyperparameter options for RNN
+lstm_units_options = [50, 75]
+spatial_dropout_options = [0.0, 0.2]
+dropout_options = [0.2]
+recurrent_dropout_options = [0.2]
 
-# # Prepare a list to store the results
-# search_results = []
+# Prepare a list to store the results
+search_results = []
 
-# # Iterate over all combinations of hyperparameters
-# for lstm_units in lstm_units_options:
-#     for spatial_dropout in spatial_dropout_options:
-#         for dropout in dropout_options:
-#             for recurrent_dropout in recurrent_dropout_options:
+# Iterate over all combinations of hyperparameters
+for lstm_units in lstm_units_options:
+    for spatial_dropout in spatial_dropout_options:
+        for dropout in dropout_options:
+            for recurrent_dropout in recurrent_dropout_options:
 
-#                 # Train and evaluate the model
-#                 model, history = train_and_evaluate_rnn_model(X_train_rnnemb, X_val_rnnemb, X_test_rnnemb, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
+                # Train and evaluate the model
+                model, history = train_and_evaluate_rnn_model(X_train_rnnemb, X_val_rnnemb, X_test_rnnemb, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
 
-#                 # Get the best validation accuracy from the history
-#                 if isinstance(history, dict):
-#                     best_val_accuracy = max(history['val_accuracy'])
-#                 else:  # If it's a History object
-#                     best_val_accuracy = max(history.history['val_accuracy'])
+                # Get the best validation accuracy from the history
+                if isinstance(history, dict):
+                    best_val_accuracy = max(history['val_accuracy'])
+                else:  # If it's a History object
+                    best_val_accuracy = max(history.history['val_accuracy'])
 
-#                 # Store the results
-#                 search_results.append({
-#                     'lstm_units': lstm_units,
-#                     'spatial_dropout': spatial_dropout,
-#                     'dropout': dropout,
-#                     'recurrent_dropout': recurrent_dropout,
-#                     'best_val_accuracy': best_val_accuracy
-#                 })
+                # Store the results
+                search_results.append({
+                    'lstm_units': lstm_units,
+                    'spatial_dropout': spatial_dropout,
+                    'dropout': dropout,
+                    'recurrent_dropout': recurrent_dropout,
+                    'best_val_accuracy': best_val_accuracy
+                })
 
-# # Sort the results by the best validation accuracy
-# search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# # Print the results
-# for result in search_results:
-#     print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
+# Prepare data for tabulation
+table_data = []
+for result in search_results:
+    table_data.append([
+        result['lstm_units'], 
+        result['spatial_dropout'], 
+        result['dropout'], 
+        result['recurrent_dropout'], 
+        f"{result['best_val_accuracy']:.4f}"
+    ])
+
+# Print the formatted table
+print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 'Recurrent Dropout', 'Best Val Accuracy'], tablefmt='psql'))
+
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
 
-<h5> Overall model performance </h5>
 
 
-<h4> Discussion and Conclusion </h4> 
-<hr> 
 
 
-<h4> References </h4> 
-<hr> 
 
-</div> 
