@@ -9,96 +9,6 @@ execute:
 ---
 
 
-<div style="text-align: justify"> 
-
-<h4> Abstract </h4> 
-<hr> 
-Converging machine learning (ML) and natural language processing (NLP) techniques, a predictive text-analysis was performed on the State of the Nation Addresses (SONAs) delivered by South African presidents spanning the period from 1994 to 2023. Different types of neural networks (NNs) were employed for the purpose of predicting the president from their spoken sentences. 
-Serving as a foundational-comparative model, a naive classification tree (CT) was first fitted followed by varying-in-complexity models from a simple feed-forward NN (FNN) to more sophisticated NNs, such as recurrent (RNN) and convolutional (CNN). For each predictive model, the involved text was transformed into features via three approaches, namely bag-of-words (BoW), term-frequency, inverse-document-frequency (tf-idf), and embeddings. A comparison, in terms of correct-classification capability, between the numerous NNs across the differently defined features was conducted with the objective of obtaining the optimal predictive model for the political speeches. 
-
-
-<h4> Introduction </h4> 
-<hr> 
-The domains of machine learning (ML) and natural language processing (NLP) intersect at text-based analysis involving the underlying aim of prediction. In this instance, the text of interest to analyze are the annual State of the Nation Address (SONA) speeches (from 1994 to 2023), whilst the predictive objective is pointed at determining which one of the six different South African presidents (F.W. de Klerk, N.R. Mandela, T.M. Mbeki, K.P. Motlanthe, J.G. Zuma, and M.C. Ramaphosa) delivered some sentence contained therein. 
-
-In order to achieve this predictive analysis, diverse ML models with differing degrees of complexity are applied. First, in order to form a comparative basis for performance, a naïve classification tree is fitted. This is then followed with the implementation of three types of neural networks (NNs),each with ascending degrees of sophistication, specifically a simple one (feed-forward) and then more complex ones (recurrent and convolutional).
-
-
-
-<h4> Literature Review </h4> 
-<hr> 
-
-<b><u> SONA  </b></u>
-
-
-
-
-<h4> Data </h4>
-<hr>
-
-
-<b><u> Tokenization </b></u>
-
-<b><u> Pre-processing </b></u>
-
-
-<h4> Methods </h4>
-<hr>
-
-<b><u> Classification Tree (CT) </b></u>
-![Schematic representation of an exemplary CT.](CT.png){#fig-CT}
-
-A classification tree (CT) [@Breiman1984] is a straightforward ML technique predominately applied in categorical prediction contexts. This simple model operates on the principle of segmenting some data into subsets, where these partitions are based on distinct values of individual features. It is naïve in its approach given it considers each feature in isolation in order to make classifying decisions, hence often overlooking complex feature interactions. 
-
-When applied to text-based data, a CT makes classification decisions based on either the frequency (a BoW representation) or weighted frequency of words (a tf-idf representation) as the features. As illustrated in @fig-CT, each CT decision node (shown as a grey, rectangular block) represents a rule where some threshold on a particular word's frequency (or weighted version thereof) is defined. While less conventional, word embeddings can also be utilized instead. Though, the CT is often found to be mediocre in its ability to fully exploit the rich semantic and syntactic relationships captured in embeddings. Given that embeddings provide a dense representation of words in a high-dimensional space, the simplistic decision boundaries of a CT are sub-par in capturing the associated contextual nuances [@Charbuty2021]. 
-
-CT hyperparameters comprise of the minimum number of samples required to split a node  as well as the maximum tree depth. Using a grid-search approach coupled with a *k*-fold cross-validation (CV) process, various combinations of these two hyperparameters over smaller sets of data (folds) are systematically assessed to find a configuration where a chosen performance metric is optimized. Here, such a metric is the average of evaluation scores (like accuracy) obtained across all folds for the hyperparameter set yielding the highest value thereof.
-
-CTs are superior in terms of its simplistic interpretability and visualization, though this advantage is tainted with its proneness to overfitting (with deep trees) and inability to capture feature complexity.  
-
-<b><u> Feed-forward Neural Network (NN) </b></u>
-![Schematic representation of an exemplary FNN](FNN.png){#fig-FNN}
-
-A feed-forward Neural Network (FNN) is a type of artificial NN wherein connections between the nodes (neurons) do not form a cycle (uni-directional in nature). As depicted in @fig-FNN, this architecture is characterized by its stratified structure,  comprising of an input layer (grey circles), one or more hidden layers (white circles), and an output layer (black circles). In each layer, the nodes apply weights and biases to inputs before passing through an activation function.
-
-In text analysis, when using BoW or tf-idf representations, each word is represented as a feature (i.e., a unique input neuron). FNNs transform text-based data into numerical vectors where each dimension corresponds to a word frequency (or weighted version thereof). These vectors are efficiently processed, thereby enabling the network to learn patterns that are predictive of an outcome of interest (like predicting presidents from sentences). With  the employment of embeddings, unlike CTs, FNNs are able to leverage such dense word representations to capture subtler semantic patterns, potentially leading to more enhanced predictions. 
-
-FNN hyperparameters involve the number of hidden layers, the number of neurons in each hidden layer, the type of activation function (e.g., ReLU or tanh), and the learning rate. To identify the optimal network architecture, a grid search over these tuneable parameters is executed. 
-
-In contrast to CTs, FNNs possess a higher aptitude to deal with feature intricacies, whether there is high dimensionality or the presence of non-linear relationships. Despite this, FNNs are also still susceptible to overfitting (with many layers/nodes). Additionally, despite its ability to capture semantic information, this is hindered by its inherent incapacity to simultaneously encapsulate the sequential/temporal relationship prevalent in text. 
-
-
-<b><u> Convolutional Neural Network (CNN) </b></u>
-![Schematic representation of an exemplary CNN.](CNN.png){#fig-CNN}
-
-
-Convolutional Neural Networks (CNNs), primarily applied within the field of image-processing, have also proven proficiency in processing natural language processing (NLP) tasks. CNNs are designed to adaptively learn spatial hierarchies of features from input data. In the context of text, this means the model is able to learn any recognizable patterns or sequences of words which carry significant semantic meaning.
-
-In comparison to CTs and FNNS, CNNs are the most specialized to incorporate embeddings, exploiting the associated representation to capture contextual information. The convolutional layers (as shown in @fig-CNN) are able to detect local patterns (like phrases or commonly co-occurring words) within these embeddings. With this model, the BoW and tf-idf approach is not ordinarily applied, given that both these representations lack the inherent sequential nature of text. Thus, the ability of CNNs to capture local dependencies is limited. 
-
-CNN hyperparameters consist of the number convolutional layers, the size and number of filters (kernels), the size of the pooling layers, and the dropout rate. To configure the optimal set of these tunable parameters, a grid search approach is applied. 
-
-CNNs are able to capture local dependencies in text-based data, allowing for more apt short-length pattern recognition. However, when dealing with long-range dependencies (like with sentences), the performance of CNNs is dampened. Lastly, given the implicit shared-weight architecture of the model, the tendency to overfit is not as prevalent compared to CTs and FNNS. 
-
-
-<b><u> Recurrent Neural Network (RNN) </b></u>
-![Schematic representation of an exemplary RNN](RNN.png){#fig-RNN}
-
-Recurrent Neural Networks (RNNs) are designed to handle sequential data. This model shares a similar architecture to FNNs, as represented in @fig-RNN, with an exception of two differences. FNNs are uni-directional models, whilst RNNs are bi-directional in nature. For the latter model, this means that information from some nodes’ outputs are able to flow in a backward direction (represented as red arrows), affecting subsequent input to the same node. Moreover, RNNs share the same weight parameter within each layer unlike FNNs where different weights apply across each node.
-
-In the context of text, this means RNNs are well-suited for tasks where understanding the order and context of words is paramount. Unlike FNNs, RNNs utilize internal state (memory) to process sequences of inputs, therefore allowing information across different parts of the text to be maintained. 
-
-Like with CNNs, RNNs are more effective when employing embeddings in comparison to BoW or tf-idf representations. These latter two approaches do not preserve the sequential order of words, which is the key feature RNNs endeavour to exploit. Through embeddings, the model is able to understand context such as comprehending how the meaning of a word is contingent on its position. This is particularly pertinent in text-based analysis involving sentence structures. 
-
-RNN hyperparameters, which can be optimized to values allowing for the best predictive model performance via a grid-search approach,  include number of recurrent units and the size thereof, dropout rates, and types of recurrent layers. 
-
-Conversely to CNNs, RNNs are more capable of dealing with long-range dependencies prevalent in text-based data, given it implicitly depends on the existence of some sort of sequential element.  Despite this, these models are rather difficult to train given exploding gradients (especially with long sequences like sentences), whilst also being expensive both in terms of 
-intensity and time. 
-
-<b><u> Model performance metrics </b></u>
-
-
-
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # preliminaries: load relevant libraries; import data; define colour palette
@@ -115,10 +25,6 @@ import nltk
 import tensorflow as tf
 import random
 import os
-import nltk
-from nltk.tokenize import sent_tokenize
-from nltk.corpus import stopwords
-import re
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from gensim.models import Word2Vec
@@ -140,14 +46,8 @@ import matplotlib.ticker as ticker
 from mpl_toolkits.mplot3d import Axes3D
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-# set global parameters
-plt.rcParams['font.family'] = 'Andale Mono'
-plt.rcParams['xtick.labelsize'] = 14
-plt.rcParams['ytick.labelsize'] = 14
-plt.rcParams['axes.labelsize'] = 16
-plt.rcParams['legend.fontsize'] = 14
-
 # set seeds for reproducibility purposes
+seed = 5
 np.random.seed(5)
 tf.random.set_seed(5)
 random.seed(5)
@@ -157,7 +57,7 @@ os.environ['PYTHONHASHSEED'] = str(5)
 data = pd.read_csv("sona.csv")
 
 # generate the RdGy colour palette
-num_colors = 10
+num_colors = 11
 rdgy_palette = brewer2mpl.get_map('RdGy', 'Diverging', num_colors, reverse=True).mpl_colors
 
 #---------------------------------------------------------------------------------------------------------------------------
@@ -168,6 +68,13 @@ rdgy_palette = brewer2mpl.get_map('RdGy', 'Diverging', num_colors, reverse=True)
 #---------------------------------------------------------------------------------------------------------------------------
 # data pre-processing: prepare data  ~ subsettting by presidents, cleaning, and segmenting speeches into sentences
 #---------------------------------------------------------------------------------------------------------------------------
+
+import pandas as pd
+import nltk
+from nltk.tokenize import sent_tokenize
+from nltk.corpus import stopwords
+import re
+
 # select subset of four out of six presidents
 subset = data[data['president'].isin(['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa'])]
 
@@ -208,186 +115,21 @@ sona_sentences['cleaned_sentence'] = sona_sentences['cleaned_sentence'].apply(la
 ```
 
 
-<h4> Exploratory Data Analysis </h4> 
-<hr> 
-
-Figure 1 
-
-
-```{python}
-#----------------------------------------------------------------------------------------------------------------------------
-# exploratory data analysis: plot speech counts
-#----------------------------------------------------------------------------------------------------------------------------
-# # create dataframe with counts of speeches for each president
-# president_num_speeches = data['president'].value_counts().reset_index()
-# president_num_speeches.columns = ['president', 'num_speeches']
-
-# # setting a specific order for the presidents
-# ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
-# president_num_speeches['president'] = pd.Categorical(president_num_speeches['president'], categories=ordered_presidents, ordered=True)
-
-# # sort the DataFrame based on the defined order
-# president_num_speeches.sort_values('president', inplace=True)
-
-# # plot the sentence counts
-# plt.bar(president_num_speeches['president'], president_num_speeches['num_speeches'], color=rdgy_palette[2])
-
-# # Customizing the plot
-# plt.xlabel("President", fontweight='bold', family='Andale Mono')
-# plt.ylabel("Number of Speeches", fontweight='bold', family='Andale Mono')
-# plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
-# plt.yticks(fontweight='bold', family='Andale Mono')
-# plt.title("", fontweight='bold', ha='center')
-
-# # Additional theme customizations
-# plt.grid(False)
-# plt.tight_layout()
-# plt.savefig(f'EDA/president_num_speeches.png', bbox_inches='tight')
-# plt.close() 
-#---------------------------------------------------------------------------------------------------------------------------
-```
-
-
-![Number of SONA speeches for each president.](EDA/president_num_speeches.png){#fig-president_num_speeches}
-
-@fig-president_num_speeches delineates the distribution of speeches across the different presidents, revealing a notable underrepresentation of de Klerk and Motlanthe. This scarcity of speeches, and so a shortage of number of sentences as well, amongst only two out of the six presidents results in an imbalanced corpus. The subsequent training of any ML model on such disproportionate data potentially jeopardizes the overall predictive performance and generalizability thereof.  Consequently, it is strategically chosen to exclude de Klerk and Motlanthe, hence instead focusing the prediction task exclusively on Mbeki, Zuma (with ten speeches each), Mandela and Ramaphosa (with seven speeches each). 
-
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot sentence counts 
 #---------------------------------------------------------------------------------------------------------------------------
-# # count the occurrences of each president
-# president_num_sentences = sona_sentences['president'].value_counts().reset_index()
-# president_num_sentences.columns = ['president', 'num_sentences']
 
-# # setting a specific order for the presidents
-# ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
-# president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
 
-# # sorting the dataframe based on the defined order
-# president_num_sentences.sort_values('president', inplace=True)
-# president_num_sentences.reset_index(drop=True, inplace=True)
 
-# # creating the sentence-count plot
-# plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
 
-# # customizing the sentence-count plot
-# plt.xlabel("President", fontweight='bold', family='Andale Mono')
-# plt.ylabel("Number of Sentences", fontweight='bold', family='Andale Mono')
-# plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
-# plt.yticks(fontweight='bold', family='Andale Mono')
-# plt.title("", fontweight='bold', ha='center')
-# plt.grid(False)
-# plt.tight_layout()
-# plt.savefig(f'EDA/president_num_sentences.png', bbox_inches='tight')
-# plt.close() 
+
+
+
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
-
-![Number of sentences in SONA speeches for each president.](EDA/president_num_sentences.png){#fig-president_num_sentences}
-
-@fig-president_num_sentences 
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# exploratory data analysis:  plot average sentence lengths
-#---------------------------------------------------------------------------------------------------------------------------
-# calculate the average length of sentences for each president
-sona_sentences['sentence_length'] = sona_sentences['sentence'].apply(len)
-avg_sentence_length = sona_sentences.groupby('president')['sentence_length'].mean().reset_index()
-avg_sentence_length['av_sen_length'] = avg_sentence_length['sentence_length'].apply(lambda x: int(x))
-avg_sentence_length.drop('sentence_length', axis=1, inplace=True)
-# sort the dataframe based on the defined order
-avg_sentence_length.sort_values('president', inplace=True)
-
-# plot the average sentence lengths 
-plt.bar(avg_sentence_length['president'], avg_sentence_length['av_sen_length'], color=rdgy_palette[9])
-
-# Customizing the plot
-plt.xlabel("President", fontweight='bold', family='Andale Mono')
-plt.ylabel("Mean Sentence Length (in words)", fontweight='bold', family='Andale Mono')
-plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
-plt.yticks(finallyontweight='bold', family='Andale Mono')
-plt.title("", fontweight='bold', ha='center')
-plt.grid(False)
-plt.tight_layout()
-plt.savefig(f'EDA/avg_sentence_length.png', bbox_inches='tight')
-plt.close() 
-#---------------------------------------------------------------------------------------------------------------------------------------------------------
-```
-
-![Average sentence length in SONA speeches for each president.](EDA/avg_sentence_length.png){#fig-avg_sentence_length}
-
-@fig-avg_sentence_length illustrates a notable contrast in the textual characteristics of speeches by Mandela and Zuma. Although Mandela's speeches encompass the fewest sentences, they surprisingly contain the second-highest average word count per sentence. Conversely, Zuma's speeches, while having the highest sentence count, exhibit the shortest average sentence length.
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------------------------------------
-# exploratory data analysis: plot top frequent words across all speeches and stratified by president
-#---------------------------------------------------------------------------------------------------------------------------------------------------------
-# # add a new column 'sentenceID' which is the row number
-# sona_sentences['sentenceID'] = range(1, len(sona_sentences) + 1)
-
-# # tokenize each sentence into words and create a new dataframe
-# sona_words = sona_sentences['cleaned_sentence'].apply(word_tokenize).explode().reset_index()
-# sona_words.columns = ['sentenceID', 'word']
-
-# # counting the occurrences of each word
-# word_counts = sona_words['word'].value_counts().reset_index()
-# word_counts.columns = ['word', 'n']
-
-# # find the top 15 most frequent words
-# top_words = word_counts.head(15)
-
-# # sort the words for better visualization
-# top_words = top_words.sort_values(by='n', ascending=True)
-
-# # plot the top 15 most frequent words across all speeches
-# plt.figure(figsize=(10, 6))
-# sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
-
-# # Customizing the plot
-# plt.xlabel("Number of times word appears", fontweight='bold')
-# plt.ylabel("", fontweight='bold', family='Andale Mono')
-# plt.xticks(fontweight='bold', family='Andale Mono')
-# plt.yticks(fontweight='bold', family='Andale Mono')
-# plt.title("", fontweight='bold', ha='center')
-# plt.grid(False)
-# sns.set_style("whitegrid")
-# plt.tight_layout()
-# plt.savefig(f'EDA/top_words.png', bbox_inches='tight')
-# plt.close() 
-
-# # Assuming sona_words DataFrame is already defined and contains the 'word' column
-# # Count the occurrences of each word
-# word_counts_all = sona_words['word'].value_counts().head(15)
-
-# # Sort the words for better visualization
-# word_counts_all = word_counts_all.sort_values()
-
-# # Define a RdGy-like color palette
-# rdgy_palette = sns.color_palette("RdGy", n_colors=10)
-
-# # Assuming 'president' is a column in the sona_words DataFrame
-# # Filter the top 15 words for each president
-# top_words_per_president = sona_words.groupby('president')['word'].value_counts().groupby(level=0).head(15).reset_index(name='count')
-
-# # Create a facetted bar plot
-# g = sns.catplot(x='count', y='word', col='president', col_wrap=4, data=top_words_per_president, kind='bar', palette=rdgy_palette)
-# g.set_axis_labels("Number of times word appears", "")
-# g.set_titles("{col_name}")
-# plt.savefig(f'EDA/top_words_per_president.png', bbox_inches='tight')
-# plt.close() 
-# #---------------------------------------------------------------------------------------------------------------------------------------------------------
-```
-
-
-![Most frequent words stated across all speeches, irrespective of president.](EDA/top_words.png){#fig-top_words}
-@fig-top_words
-
-
-![Most frequent words stated across all speeches, stratified by president.](EDA/top_words_per_president.png){#fig-top_words_per_president}
-@fig-top_words_per_president 
 
 
 ```{python}
@@ -410,19 +152,17 @@ embeddings_features = np.array([np.mean([model.wv[word] for word in text.split()
 def sentence_to_avg_vector(sentence, model):
     return np.mean([model.wv[word] for word in sentence.split() if word in model.wv] or [np.zeros(model.vector_size)], axis=0)
 
-# cnvert sentences to sequences of vectors
+# Convert sentences to sequences of vectors
 vector_sequences = [[model.wv[word] for word in sentence.split() if word in model.wv] for sentence in sona_sentences['cleaned_sentence']]
 
-# determine the length of the longest sequence
+# Determine the length of the longest sequence
 max_seq_length = max(len(sequence) for sequence in vector_sequences)
 
-# pad sequences to have the same length
+# Pad sequences to have the same length
 padded_sequences = pad_sequences(vector_sequences, maxlen=max_seq_length, padding='post', dtype='float32', value=0)
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
-
-
 
 
 ```{python}
@@ -450,10 +190,9 @@ X_val_rnnemb, X_test_rnnemb, y_val, y_test = train_test_split(X_temp_rnnemb, y_t
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
+
 ```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Classification tree ~ define general function for all approaches
-#---------------------------------------------------------------------------------------------------------------------------
+
 def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, feature_set_name, results_dir='results'):
     # Define file paths
     model_path = os.path.join(results_dir, f'tree_clf_{feature_set_name}.pkl')
@@ -508,7 +247,9 @@ def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, featu
     plt.ylabel('Max Depth')
     plt.savefig(plot_path)
     plt.show()
-#---------------------------------------------------------------------------------------------------------------------------
+
+
+
 ```
 
 ```{python}
@@ -517,6 +258,7 @@ def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, featu
 #---------------------------------------------------------------------------------------------------------------------------
 
 decision_tree_analysis(X_train_bow, X_val_bow, X_test_bow, y_train, y_val, y_test, 'bow')
+
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
@@ -535,25 +277,16 @@ decision_tree_analysis(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val,
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Classification tree  ~ for embedding approach
-#--------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
 
 decision_tree_analysis(X_train_emb, X_val_emb, X_test_emb, y_train, y_val, y_test, 'embedding')
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
 
-::: {#fig-sent-presidents layout-ncol=2}
-
-![$\texttt{AFINN}$: de Klerk speeches](sentiment_plots/sent_afinn_deKlerk.png){#fig-sent-deKlerk-afinn}
-
-![$\texttt{bing}$: de Klerk speeches](sentiment_plots/sent_bing_deKlerk.png){#fig-sent-deKlerk-bing}
-
-:::
-
 ```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Feed-forward neural network ~ define general function for all approaches
-#---------------------------------------------------------------------------------------------------------------------------
+
 def create_model(hidden_layer_sizes, activation, input_shape, num_classes):
     model = Sequential()
     for i, layer_size in enumerate(hidden_layer_sizes):
@@ -624,7 +357,7 @@ def train_and_evaluate_model(X_train, X_val, X_test, y_train, y_val, y_test, hid
     plt.show()
 
     return model, history
-#---------------------------------------------------------------------------------------------------------------------------
+
 ```
 
 
@@ -658,7 +391,6 @@ for hidden_layers in fnn_params:
         print(f"\nTraining model with {hidden_layers} hidden layers and {activation} activation")
         train_and_evaluate_model(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val, y_test, hidden_layers, activation, 'tf-idf')
 
-
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -680,9 +412,7 @@ for hidden_layers in fnn_params:
 
 
 ```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ define a general function for all approaches
-#---------------------------------------------------------------------------------------------------------------------------
+
 def create_cnn_model(input_shape, num_classes, filters, kernel_size, dropout_rate):
     model = Sequential()
     model.add(Input(shape=input_shape))  # Adjust to the shape of your features
@@ -759,7 +489,6 @@ filters_options = [64, 128]  # Number of filters
 kernel_size_options = [3, 5]  # Size of the convolutional kernels
 dropout_rate_options = [0.2, 0.5]  # Dropout rates
 
-#---------------------------------------------------------------------------------------------------------------------------
 ```
 
 
@@ -767,6 +496,7 @@ dropout_rate_options = [0.2, 0.5]  # Dropout rates
 #---------------------------------------------------------------------------------------------------------------------------
 # Convolutional neural network ~ for BoW approach
 #---------------------------------------------------------------------------------------------------------------------------
+
 # Define other parameters
 feature_set_name = "BoW" 
 epochs = 10  
@@ -899,13 +629,11 @@ search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], re
 # Print the results
 for result in search_results:
     print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
-#---------------------------------------------------------------------------------------------------------------------------
+
 ```
 
 ```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Recurrent neural network ~ define a general function for all approaches
-#---------------------------------------------------------------------------------------------------------------------------
+
 def build_rnn_model(input_shape, num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout):
     model = Sequential()
     # Reshape layer to convert 2D input to 3D
@@ -986,7 +714,6 @@ def train_and_evaluate_rnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
 
     return model, history
 
-#---------------------------------------------------------------------------------------------------------------------------
 ```
 
 
@@ -1151,3 +878,13 @@ search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], re
 for result in search_results:
     print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
 #---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+
+
+
+
+
+
+
