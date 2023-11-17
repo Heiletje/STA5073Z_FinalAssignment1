@@ -20,8 +20,6 @@ format:
     toc: true
     max-width: 50em
 
-bibliography: references.bib
-
 execute:
   cache: true
   echo: false

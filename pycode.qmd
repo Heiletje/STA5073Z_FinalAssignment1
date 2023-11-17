@@ -116,7 +116,7 @@ import tensorflow as tf
 import random
 import os
 import nltk
-from nltk.tokenize import sent_tokenize
+from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import re
 from nltk.corpus import stopwords
@@ -248,7 +248,7 @@ Figure 1
 ```
 
 
-![Number of SONA speeches for each president.](EDA/president_num_speeches.png){#fig-president_num_speeches}
+<!-- ![Number of SONA speeches for each president.](EDA/president_num_speeches.png){#fig-president_num_speeches} -->
 
 @fig-president_num_speeches delineates the distribution of speeches across the different presidents, revealing a notable underrepresentation of de Klerk and Motlanthe. This scarcity of speeches, and so a shortage of number of sentences as well, amongst only two out of the six presidents results in an imbalanced corpus. The subsequent training of any ML model on such disproportionate data potentially jeopardizes the overall predictive performance and generalizability thereof.  Consequently, it is strategically chosen to exclude de Klerk and Motlanthe, hence instead focusing the prediction task exclusively on Mbeki, Zuma (with ten speeches each), Mandela and Ramaphosa (with seven speeches each). 
 
@@ -257,31 +257,31 @@ Figure 1
 #---------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot sentence counts 
 #---------------------------------------------------------------------------------------------------------------------------
-# # count the occurrences of each president
-# president_num_sentences = sona_sentences['president'].value_counts().reset_index()
-# president_num_sentences.columns = ['president', 'num_sentences']
+# count the occurrences of each president
+president_num_sentences = sona_sentences['president'].value_counts().reset_index()
+president_num_sentences.columns = ['president', 'num_sentences']
 
-# # setting a specific order for the presidents
-# ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
-# president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
+# setting a specific order for the presidents
+ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
+president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
 
-# # sorting the dataframe based on the defined order
-# president_num_sentences.sort_values('president', inplace=True)
-# president_num_sentences.reset_index(drop=True, inplace=True)
+# sorting the dataframe based on the defined order
+president_num_sentences.sort_values('president', inplace=True)
+president_num_sentences.reset_index(drop=True, inplace=True)
 
-# # creating the sentence-count plot
-# plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
+# creating the sentence-count plot
+plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
 
-# # customizing the sentence-count plot
-# plt.xlabel("President", fontweight='bold', family='Andale Mono')
-# plt.ylabel("Number of Sentences", fontweight='bold', family='Andale Mono')
-# plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
-# plt.yticks(fontweight='bold', family='Andale Mono')
-# plt.title("", fontweight='bold', ha='center')
-# plt.grid(False)
-# plt.tight_layout()
-# plt.savefig(f'EDA/president_num_sentences.png', bbox_inches='tight')
-# plt.close() 
+# customizing the sentence-count plot
+plt.xlabel("President", fontweight='bold', family='Andale Mono')
+plt.ylabel("Number of Sentences", fontweight='bold', family='Andale Mono')
+plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
+plt.yticks(fontweight='bold', family='Andale Mono')
+plt.title("", fontweight='bold', ha='center')
+plt.grid(False)
+plt.tight_layout()
+plt.savefig(f'EDA/president_num_sentences.png', bbox_inches='tight')
+plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -293,31 +293,31 @@ Figure 1
 #---------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis:  plot average sentence lengths
 #---------------------------------------------------------------------------------------------------------------------------
-# calculate the average length of sentences for each president
-sona_sentences['sentence_length'] = sona_sentences['sentence'].apply(len)
-avg_sentence_length = sona_sentences.groupby('president')['sentence_length'].mean().reset_index()
-avg_sentence_length['av_sen_length'] = avg_sentence_length['sentence_length'].apply(lambda x: int(x))
-avg_sentence_length.drop('sentence_length', axis=1, inplace=True)
-# sort the dataframe based on the defined order
-avg_sentence_length.sort_values('president', inplace=True)
+# # calculate the average length of sentences for each president
+# sona_sentences['sentence_length'] = sona_sentences['sentence'].apply(len)
+# avg_sentence_length = sona_sentences.groupby('president')['sentence_length'].mean().reset_index()
+# avg_sentence_length['av_sen_length'] = avg_sentence_length['sentence_length'].apply(lambda x: int(x))
+# avg_sentence_length.drop('sentence_length', axis=1, inplace=True)
+# # sort the dataframe based on the defined order
+# avg_sentence_length.sort_values('president', inplace=True)
 
-# plot the average sentence lengths 
-plt.bar(avg_sentence_length['president'], avg_sentence_length['av_sen_length'], color=rdgy_palette[9])
+# # plot the average sentence lengths 
+# plt.bar(avg_sentence_length['president'], avg_sentence_length['av_sen_length'], color=rdgy_palette[9])
 
-# Customizing the plot
-plt.xlabel("President", fontweight='bold', family='Andale Mono')
-plt.ylabel("Mean Sentence Length (in words)", fontweight='bold', family='Andale Mono')
-plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
-plt.yticks(finallyontweight='bold', family='Andale Mono')
-plt.title("", fontweight='bold', ha='center')
-plt.grid(False)
-plt.tight_layout()
-plt.savefig(f'EDA/avg_sentence_length.png', bbox_inches='tight')
-plt.close() 
+# # Customizing the plot
+# plt.xlabel("President", fontweight='bold', family='Andale Mono')
+# plt.ylabel("Mean Sentence Length (in words)", fontweight='bold', family='Andale Mono')
+# plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
+# plt.yticks(finallyontweight='bold', family='Andale Mono')
+# plt.title("", fontweight='bold', ha='center')
+# plt.grid(False)
+# plt.tight_layout()
+# plt.savefig(f'EDA/avg_sentence_length.png', bbox_inches='tight')
+# plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-![Average sentence length in SONA speeches for each president.](EDA/avg_sentence_length.png){#fig-avg_sentence_length}
+<!-- ![Average sentence length in SONA speeches for each president.](EDA/avg_sentence_length.png){#fig-avg_sentence_length} -->
 
 @fig-avg_sentence_length illustrates a notable contrast in the textual characteristics of speeches by Mandela and Zuma. Although Mandela's speeches encompass the fewest sentences, they surprisingly contain the second-highest average word count per sentence. Conversely, Zuma's speeches, while having the highest sentence count, exhibit the shortest average sentence length.
 
@@ -325,38 +325,38 @@ plt.close()
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot top frequent words across all speeches and stratified by president
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-# # add a new column 'sentenceID' which is the row number
-# sona_sentences['sentenceID'] = range(1, len(sona_sentences) + 1)
+# add a new column 'sentenceID' which is the row number
+sona_sentences['sentenceID'] = range(1, len(sona_sentences) + 1)
 
-# # tokenize each sentence into words and create a new dataframe
-# sona_words = sona_sentences['cleaned_sentence'].apply(word_tokenize).explode().reset_index()
-# sona_words.columns = ['sentenceID', 'word']
+# tokenize each sentence into words and create a new dataframe
+sona_words = sona_sentences['cleaned_sentence'].apply(word_tokenize).explode().reset_index()
+sona_words.columns = ['sentenceID', 'word']
 
-# # counting the occurrences of each word
-# word_counts = sona_words['word'].value_counts().reset_index()
-# word_counts.columns = ['word', 'n']
+# counting the occurrences of each word
+word_counts = sona_words['word'].value_counts().reset_index()
+word_counts.columns = ['word', 'n']
 
-# # find the top 15 most frequent words
-# top_words = word_counts.head(15)
+# find the top 15 most frequent words
+top_words = word_counts.head(15)
 
-# # sort the words for better visualization
-# top_words = top_words.sort_values(by='n', ascending=True)
+# sort the words for better visualization
+top_words = top_words.sort_values(by='n', ascending=True)
 
-# # plot the top 15 most frequent words across all speeches
-# plt.figure(figsize=(10, 6))
-# sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
+# plot the top 15 most frequent words across all speeches
+plt.figure(figsize=(10, 6))
+sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
 
-# # Customizing the plot
-# plt.xlabel("Number of times word appears", fontweight='bold')
-# plt.ylabel("", fontweight='bold', family='Andale Mono')
-# plt.xticks(fontweight='bold', family='Andale Mono')
-# plt.yticks(fontweight='bold', family='Andale Mono')
-# plt.title("", fontweight='bold', ha='center')
-# plt.grid(False)
-# sns.set_style("whitegrid")
-# plt.tight_layout()
-# plt.savefig(f'EDA/top_words.png', bbox_inches='tight')
-# plt.close() 
+# Customizing the plot
+plt.xlabel("Number of times word appears", fontweight='bold')
+plt.ylabel("", fontweight='bold', family='Andale Mono')
+plt.xticks(fontweight='bold', family='Andale Mono')
+plt.yticks(fontweight='bold', family='Andale Mono')
+plt.title("", fontweight='bold', ha='center')
+plt.grid(False)
+sns.set_style("whitegrid")
+plt.tight_layout()
+plt.savefig(f'EDA/top_words.png', bbox_inches='tight')
+plt.close() 
 
 # # Assuming sona_words DataFrame is already defined and contains the 'word' column
 # # Count the occurrences of each word
@@ -542,13 +542,13 @@ decision_tree_analysis(X_train_emb, X_val_emb, X_test_emb, y_train, y_val, y_tes
 ```
 
 
-::: {#fig-sent-presidents layout-ncol=2}
+<!-- ::: {#fig-sent-presidents layout-ncol=2}
 
 ![$\texttt{AFINN}$: de Klerk speeches](sentiment_plots/sent_afinn_deKlerk.png){#fig-sent-deKlerk-afinn}
 
 ![$\texttt{bing}$: de Klerk speeches](sentiment_plots/sent_bing_deKlerk.png){#fig-sent-deKlerk-bing}
 
-:::
+::: -->
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
@@ -1105,49 +1105,63 @@ for result in search_results:
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for embedding approach
 #---------------------------------------------------------------------------------------------------------------------------
-# Define other parameters
-feature_set_name = "Embedding" 
-epochs = 10  
-batch_size = 32 
-results_dir = "rnn_emb_results"
+# # Define other parameters
+# feature_set_name = "Embedding" 
+# epochs = 10  
+# batch_size = 32 
+# results_dir = "rnn_emb_results"
 
-# Hyperparameter options for RNN
-lstm_units_options = [50, 75]
-spatial_dropout_options = [0.0, 0.2]
-dropout_options = [0.2]
-recurrent_dropout_options = [0.2]
+# # Hyperparameter options for RNN
+# lstm_units_options = [50, 75]
+# spatial_dropout_options = [0.0, 0.2]
+# dropout_options = [0.2]
+# recurrent_dropout_options = [0.2]
 
-# Prepare a list to store the results
-search_results = []
+# # Prepare a list to store the results
+# search_results = []
 
-# Iterate over all combinations of hyperparameters
-for lstm_units in lstm_units_options:
-    for spatial_dropout in spatial_dropout_options:
-        for dropout in dropout_options:
-            for recurrent_dropout in recurrent_dropout_options:
+# # Iterate over all combinations of hyperparameters
+# for lstm_units in lstm_units_options:
+#     for spatial_dropout in spatial_dropout_options:
+#         for dropout in dropout_options:
+#             for recurrent_dropout in recurrent_dropout_options:
 
-                # Train and evaluate the model
-                model, history = train_and_evaluate_rnn_model(X_train_rnnemb, X_val_rnnemb, X_test_rnnemb, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
+#                 # Train and evaluate the model
+#                 model, history = train_and_evaluate_rnn_model(X_train_rnnemb, X_val_rnnemb, X_test_rnnemb, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
 
-                # Get the best validation accuracy from the history
-                if isinstance(history, dict):
-                    best_val_accuracy = max(history['val_accuracy'])
-                else:  # If it's a History object
-                    best_val_accuracy = max(history.history['val_accuracy'])
+#                 # Get the best validation accuracy from the history
+#                 if isinstance(history, dict):
+#                     best_val_accuracy = max(history['val_accuracy'])
+#                 else:  # If it's a History object
+#                     best_val_accuracy = max(history.history['val_accuracy'])
 
-                # Store the results
-                search_results.append({
-                    'lstm_units': lstm_units,
-                    'spatial_dropout': spatial_dropout,
-                    'dropout': dropout,
-                    'recurrent_dropout': recurrent_dropout,
-                    'best_val_accuracy': best_val_accuracy
-                })
+#                 # Store the results
+#                 search_results.append({
+#                     'lstm_units': lstm_units,
+#                     'spatial_dropout': spatial_dropout,
+#                     'dropout': dropout,
+#                     'recurrent_dropout': recurrent_dropout,
+#                     'best_val_accuracy': best_val_accuracy
+#                 })
 
-# Sort the results by the best validation accuracy
-search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+# # Sort the results by the best validation accuracy
+# search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Print the results
-for result in search_results:
-    print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
+# # Print the results
+# for result in search_results:
+#     print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
 #---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+<h5> Overall model performance </h5>
+
+
+<h4> Discussion and Conclusion </h4> 
+<hr> 
+
+
+<h4> References </h4> 
+<hr> 
+
+</div> 
