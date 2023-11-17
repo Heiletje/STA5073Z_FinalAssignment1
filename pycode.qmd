@@ -3,11 +3,9 @@ title: "Prediction of Presidents"
 title-size: small
 format: html
 execute:
-  echo: false
-  cache: true
-  freeze: auto
-  output: false
-  eval: false
+    echo: false
+    cache: false
+    freeze: false
 ---
 
 
@@ -258,8 +256,10 @@ Figure 1
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
+ 
 
-<!-- ![Number of SONA speeches for each president.](EDA/president_num_speeches.png){#fig-president_num_speeches} -->
+
+![Number of SONA speeches for each president.](president_num_speeches.png){#fig-president_num_speeches}
 
 @fig-president_num_speeches delineates the distribution of speeches across the different presidents, revealing a notable underrepresentation of de Klerk and Motlanthe. This scarcity of speeches, and so a shortage of number of sentences as well, amongst only two out of the six presidents results in an imbalanced corpus. The subsequent training of any ML model on such disproportionate data potentially jeopardizes the overall predictive performance and generalizability thereof.  Consequently, it is strategically chosen to exclude de Klerk and Motlanthe, hence instead focusing the prediction task exclusively on Mbeki, Zuma (with ten speeches each), Mandela and Ramaphosa (with seven speeches each). 
 
@@ -298,7 +298,9 @@ plt.close()
 
 ![Number of sentences in SONA speeches for each president.](EDA/president_num_sentences.png){#fig-president_num_sentences}
 
-@fig-president_num_sentences 
+
+
+Subsequently, the number of sentences for this now stratified-by-presidents dataset is considered in @fig-president_num_sentences. Here, it is seen that although Mandela and Ramaphosa have the same number of speeches, the former president overall had the least number of sentences. Such a discrepancy between Mbeki and Zuma is less pronounced, though the latter president’s speech is nevertheless still marginally deemed as having more number of sentences than within Mbeki’ speeches. Overall, Mandela’s speeches can be deemed as the shortest, in contrast to Zuma and his longest speeches. Given this findings, there is an evident imbalance in the data which could implicate the implementation of the neural networks. Thus, to make it more consistent, a random sample of 1000 sentences from each president will be extracted for the building of the models. 
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
@@ -393,12 +395,14 @@ plt.close()
 ```
 
 
-![Most frequent words stated across all speeches, irrespective of president.](EDA/top_words.png){#fig-top_words}
-@fig-top_words
+![Most frequent words stated across all speeches, irrespective of president.](top_words.png){#fig-top_words}
+After balancing the data, undergoing word tokenization, and applying additional pre-processing steps (e.g., removal of stop words, other common words like greetings towards “madame” “speaker” and “honourable” “member”), the following most frequent fifteen words across all speeches are presented in @fig-top_words. Evidently, governing activities relating to different domains (from “economic” to “social”) are often mentioned. 
 
 
-![Most frequent words stated across all speeches, stratified by president.](EDA/top_words_per_president.png){#fig-top_words_per_president}
-@fig-top_words_per_president 
+![Most frequent words stated across all speeches, stratified by president.](top_words_per_president.png){#fig-top_words_per_president}
+
+
+Then, the most frequent fifteen words now faceted by president is featured in @fig-top_words_per_president. From this, it seems as if Mandela uses more social-related diction with his common words being “society”, “public”, “people”. Whilst, the other three presidents’ vocabulary is more focused on economic-related jargon like “sector”, “economic”, “infrastructure”, “jobs”, “investment”, and “business”. Hence, there is concurrently differentiation between presidents (like Mandela from Ramaphosa), but also distinct likeness with the presence of overlapping words. This potentially foreshadows the challenge of classifying these presidential speeches due to such similarity. 
 
 
 ```{python}
@@ -624,7 +628,7 @@ def train_and_evaluate_model(X_train, X_val, X_test, y_train, y_val, y_test, hid
     plt.title(f'Model Loss - {feature_set_name} - {hidden_layer_sizes} - {activation}')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
-    plt.legend(loc='upper left')
+    plt.legend(loc='upper right')
     plt.grid(True)
     plt.show()
 
@@ -760,7 +764,7 @@ def train_and_evaluate_cnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
     plt.title(f'CNN Model Loss - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}')
     plt.ylabel('Loss')
     plt.xlabel('Epoch')
-    plt.legend(loc='upper left')
+    plt.legend(loc='upper right')
     plt.grid(True)
     plt.show()
 
@@ -1012,7 +1016,7 @@ def train_and_evaluate_rnn_model(X_train, X_val, X_test, y_train, y_val, y_test,
     plt.title(f'RNN Model Accuracy - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}')
     plt.ylabel('Accuracy')
     plt.xlabel('Epoch')
-    plt.legend(loc='upper left')
+    plt.legend(loc='upper right')
     plt.grid(True)
     plt.show()
 
@@ -1186,61 +1190,61 @@ print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for embedding approach
 #---------------------------------------------------------------------------------------------------------------------------
-# Define other parameters
-feature_set_name = "Embedding" 
-epochs = 10  
-batch_size = 32 
-results_dir = "rnn_emb_results"
+# # Define other parameters
+# feature_set_name = "Embedding" 
+# epochs = 10  
+# batch_size = 32 
+# results_dir = "rnn_emb_results"
 
-# Hyperparameter options for RNN
-lstm_units_options = [50, 75]
-spatial_dropout_options = [0.0, 0.2]
-dropout_options = [0.2]
-recurrent_dropout_options = [0.2]
+# # Hyperparameter options for RNN
+# lstm_units_options = [50, 75]
+# spatial_dropout_options = [0.0, 0.2]
+# dropout_options = [0.2]
+# recurrent_dropout_options = [0.2]
 
-# Prepare a list to store the results
-search_results = []
+# # Prepare a list to store the results
+# search_results = []
 
-# Iterate over all combinations of hyperparameters
-for lstm_units in lstm_units_options:
-    for spatial_dropout in spatial_dropout_options:
-        for dropout in dropout_options:
-            for recurrent_dropout in recurrent_dropout_options:
+# # Iterate over all combinations of hyperparameters
+# for lstm_units in lstm_units_options:
+#     for spatial_dropout in spatial_dropout_options:
+#         for dropout in dropout_options:
+#             for recurrent_dropout in recurrent_dropout_options:
 
-                # Train and evaluate the model
-                model, history = train_and_evaluate_rnn_model(X_train_rnnemb, X_val_rnnemb, X_test_rnnemb, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
+#                 # Train and evaluate the model
+#                 model, history = train_and_evaluate_rnn_model(X_train_rnnemb, X_val_rnnemb, X_test_rnnemb, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
 
-                # Get the best validation accuracy from the history
-                if isinstance(history, dict):
-                    best_val_accuracy = max(history['val_accuracy'])
-                else:  # If it's a History object
-                    best_val_accuracy = max(history.history['val_accuracy'])
+#                 # Get the best validation accuracy from the history
+#                 if isinstance(history, dict):
+#                     best_val_accuracy = max(history['val_accuracy'])
+#                 else:  # If it's a History object
+#                     best_val_accuracy = max(history.history['val_accuracy'])
 
-                # Store the results
-                search_results.append({
-                    'lstm_units': lstm_units,
-                    'spatial_dropout': spatial_dropout,
-                    'dropout': dropout,
-                    'recurrent_dropout': recurrent_dropout,
-                    'best_val_accuracy': best_val_accuracy
-                })
+#                 # Store the results
+#                 search_results.append({
+#                     'lstm_units': lstm_units,
+#                     'spatial_dropout': spatial_dropout,
+#                     'dropout': dropout,
+#                     'recurrent_dropout': recurrent_dropout,
+#                     'best_val_accuracy': best_val_accuracy
+#                 })
 
-# Sort the results by the best validation accuracy
-search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+# # Sort the results by the best validation accuracy
+# search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
 
-# Prepare data for tabulation
-table_data = []
-for result in search_results:
-    table_data.append([
-        result['lstm_units'], 
-        result['spatial_dropout'], 
-        result['dropout'], 
-        result['recurrent_dropout'], 
-        f"{result['best_val_accuracy']:.4f}"
-    ])
+# # Prepare data for tabulation
+# table_data = []
+# for result in search_results:
+#     table_data.append([
+#         result['lstm_units'], 
+#         result['spatial_dropout'], 
+#         result['dropout'], 
+#         result['recurrent_dropout'], 
+#         f"{result['best_val_accuracy']:.4f}"
+#     ])
 
-# Print the formatted table
-print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 'Recurrent Dropout', 'Best Val Accuracy'], tablefmt='psql'))
+# # Print the formatted table
+# print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 'Recurrent Dropout', 'Best Val Accuracy'], tablefmt='psql'))
 
 
 #---------------------------------------------------------------------------------------------------------------------------
@@ -1250,5 +1254,29 @@ print(tabulate(table_data, headers=['LSTM Units', 'Spatial Dropout', 'Dropout', 
 
 
 
+<h4> Discussion and Conclusion </h4> 
+<hr> 
 
 
+Upon examination of the test-set accuracy for all Presidents, it is observed that the Bag of Words (BoW) and Term Frequency-Inverse Document Frequency (tf-idf) methods demonstrate a higher accuracy rate of 33%, whereas the embedding approach exhibits a marginally lower accuracy of 29%. This pattern is consistent in the validation-set, with negligible variation in accuracy percentages. Notably, the F1-score remains modest across all methods, averaging around 0.2.
+
+In the context of CT employing the BoW method, it is noteworthy that President Zuma's sentences were most accurately classified, with a total of 500 sentences correctly identified. Similarly, when utilizing the CT with tf-idf method, this heightened predictive performance is exclusively apparent for President Zuma. In stark contrast, the predictive accuracy for sentences of other Presidents is remarkably low, with values below 50.
+
+The FNN model that incorporates a Bag of Words (BoW) framework with a ReLU activation function registers a testing accuracy of 40% and an F1-score of 0.37. In comparison, an enhancement is observed in the BoW-FNN model employing a tanh activation function, which achieves a testing accuracy of 43% and an F1-score of 0.4. These metrics are consistent with the trends noted in the training accuracy and F1-scores.
+
+When evaluating models that utilize embedding techniques, a general trend of reduced testing accuracy is apparent, hovering around the 30% mark. This suggests a relative underperformance of embedding models compared to their BoW-FNN counterparts.
+
+Further analysis reveals that both the ReLU and tanh activation functions in the validation dataset are associated with suboptimal performance, characterized by an uptick in loss and a downtrend in accuracy. However, an exception is noted in the BoW-FNN model with the tanh activation, where the loss function values exhibit a tendency to stabilize, indicating a more robust model performance under these specific parameters.
+
+An examination of the embedding models’ loss function plots shows a consistent decrease, yet they do not necessarily signal convergence, as evidenced by the absence of a leveling off. This lack of convergence suggests that these models might benefit from additional training epochs to potentially enhance their predictive accuracy.
+
+Diving deeper into the predictive capabilities of various models, the confusion matrices for some embedding models unveil a varied performance based on the activation function. Specifically, the ReLU activation fails to correctly classify sentences by Mandela and Ramaphosa. In stark contrast, the embedding model with tanh activation and configured with (100, 50) hidden layers demonstrates a notably better predictive capacity for sentences by Mbeki and Zuma.
+
+In an overarching assessment, FNN models emerge as more adept at classifying the speeches of various presidents compared to other models. This superior classification capability is exemplified in the accurate prediction of Zuma's sentences across all FNN models, irrespective of the approach or activation function. This trend aligns with the findings from the CT. Furthermore, the BoW and tf-idf FNN models display a more diversified classification ability across different presidents, extending beyond Zuma. However, a persistent challenge remains in accurately predicting Mandela's sentences, which are consistently the least accurately classified across the models.
+
+
+
+<h4> References </h4> 
+<hr> 
+
+</div> 
