@@ -4,7 +4,7 @@ author:
     - "Heiletjé van Zyl (VZYHEI003)"
 ---
 
-This is the website for the first assignment (pertaining to neural networks) of the Masters-level course "Data Science for Industry" (DS4I) at the University of Cape Town. All relevant files related to this assignment are archived [here](https://github.com/Jared-T/ds4i-assignment2-code). 
+This is the website for the first assignment (pertaining to neural networks) of the Masters-level course "Data Science for Industry" (DS4I) at the University of Cape Town. All relevant files related to this assignment are archived [here](https://heiletje.github.io/STA5073Z_FinalAssignment1/pycode.html). 
 
 
 
