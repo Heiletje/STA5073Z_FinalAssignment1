@@ -36,6 +36,7 @@ In order to achieve this predictive analysis, diverse ML models with differing d
 <h4> Data </h4>
 <hr>
 
+
 <b><u> Tokenization </b></u>
 
 <b><u> Pre-processing </b></u>
@@ -56,9 +57,9 @@ CT hyperparameters comprise of the minimum number of samples required to split a
 CTs are superior in terms of its simplistic interpretability and visualization, though this advantage is tainted with its proneness to overfitting (with deep trees) and inability to capture feature complexity.  
 
 <b><u> Feed-forward Neural Network (NN) </b></u>
-![Schematic representation of any FNN](FNN.png){#fig-FNN}
+![Schematic representation of an exemplary FNN](FNN.png){#fig-FNN}
 
-A feed-forward Neural Network (FNN) is a type of artificial NN wherein connections between the nodes (neurons) do not form a cycle. As depicted in @fig-FNN, this architecture is characterized by its stratified structure,  comprising of an input layer (grey circles), one or more hidden layers (white circles), and an output layer (black circles). In each layer, the nodes apply weights and biases to inputs before passing through an activation function.
+A feed-forward Neural Network (FNN) is a type of artificial NN wherein connections between the nodes (neurons) do not form a cycle (uni-directional in nature). As depicted in @fig-FNN, this architecture is characterized by its stratified structure,  comprising of an input layer (grey circles), one or more hidden layers (white circles), and an output layer (black circles). In each layer, the nodes apply weights and biases to inputs before passing through an activation function.
 
 In text analysis, when using BoW or tf-idf representations, each word is represented as a feature (i.e., a unique input neuron). FNNs transform text-based data into numerical vectors where each dimension corresponds to a word frequency (or weighted version thereof). These vectors are efficiently processed, thereby enabling the network to learn patterns that are predictive of an outcome of interest (like predicting presidents from sentences). With  the employment of embeddings, unlike CTs, FNNs are able to leverage such dense word representations to capture subtler semantic patterns, potentially leading to more enhanced predictions. 
 
@@ -68,10 +69,10 @@ In contrast to CTs, FNNs possess a higher aptitude to deal with feature intricac
 
 
 <b><u> Convolutional Neural Network (CNN) </b></u>
-![Schematic representation of any CNN](CNN.png){#fig-CNN}
+![Schematic representation of an exemplary CNN.](CNN.png){#fig-CNN}
 
-Convolutional Neural Networks (CNNs), primarily applied within the field of image-processing, have also proven proficiency in processing natural language processing (NLP) tasks. CNNs are designed to adaptively learn spatial hierarchies of features from input data. 
-In the context of text, this means the model is able to learn any recognizable patterns or sequences of words which carry significant semantic meaning.
+
+Convolutional Neural Networks (CNNs), primarily applied within the field of image-processing, have also proven proficiency in processing natural language processing (NLP) tasks. CNNs are designed to adaptively learn spatial hierarchies of features from input data. In the context of text, this means the model is able to learn any recognizable patterns or sequences of words which carry significant semantic meaning.
 
 In comparison to CTs and FNNS, CNNs are the most specialized to incorporate embeddings, exploiting the associated representation to capture contextual information. The convolutional layers (as shown in @fig-CNN) are able to detect local patterns (like phrases or commonly co-occurring words) within these embeddings. With this model, the BoW and tf-idf approach is not ordinarily applied, given that both these representations lack the inherent sequential nature of text. Thus, the ability of CNNs to capture local dependencies is limited. 
 
@@ -81,7 +82,18 @@ CNNs are able to capture local dependencies in text-based data, allowing for mor
 
 
 <b><u> Recurrent Neural Network (RNN) </b></u>
-![Schematic representation of any RNN](RNN.png){#fig-RNN}
+![Schematic representation of an exemplary RNN](RNN.png){#fig-RNN}
+
+Recurrent Neural Networks (RNNs) are designed to handle sequential data. This model shares a similar architecture to FNNs, as represented in @fig-RNN, with an exception of two differences. FNNs are uni-directional models, whilst RNNs are bi-directional in nature. For the latter model, this means that information from some nodes’ outputs are able to flow in a backward direction (represented as red arrows), affecting subsequent input to the same node. Moreover, RNNs share the same weight parameter within each layer unlike FNNs where different weights apply across each node.
+
+In the context of text, this means RNNs are well-suited for tasks where understanding the order and context of words is paramount. Unlike FNNs, RNNs utilize internal state (memory) to process sequences of inputs, therefore allowing information across different parts of the text to be maintained. 
+
+Like with CNNs, RNNs are more effective when employing embeddings in comparison to BoW or tf-idf representations. These latter two approaches do not preserve the sequential order of words, which is the key feature RNNs endeavour to exploit. Through embeddings, the model is able to understand context such as comprehending how the meaning of a word is contingent on its position. This is particularly pertinent in text-based analysis involving sentence structures. 
+
+RNN hyperparameters, which can be optimized to values allowing for the best predictive model performance via a grid-search approach,  include number of recurrent units and the size thereof, dropout rates, and types of recurrent layers. 
+
+Conversely to CNNs, RNNs are more capable of dealing with long-range dependencies prevalent in text-based data, given it implicitly depends on the existence of some sort of sequential element.  Despite this, these models are rather difficult to train given exploding gradients (especially with long sequences like sentences), whilst also being expensive both in terms of 
+intensity and time. 
 
 <b><u> Model performance metrics </b></u>
 
@@ -246,31 +258,31 @@ plt.close()
 #---------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot sentence counts 
 #---------------------------------------------------------------------------------------------------------------------------
-# count the occurrences of each president
-president_num_sentences = sona_sentences['president'].value_counts().reset_index()
-president_num_sentences.columns = ['president', 'num_sentences']
+# # count the occurrences of each president
+# president_num_sentences = sona_sentences['president'].value_counts().reset_index()
+# president_num_sentences.columns = ['president', 'num_sentences']
 
-# setting a specific order for the presidents
-ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
-president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
+# # setting a specific order for the presidents
+# ordered_presidents = ['Mandela', 'Mbeki', 'Zuma', 'Ramaphosa']
+# president_num_sentences['president'] = pd.Categorical(president_num_sentences['president'], categories=ordered_presidents, ordered=True)
 
-# sorting the dataframe based on the defined order
-president_num_sentences.sort_values('president', inplace=True)
-president_num_sentences.reset_index(drop=True, inplace=True)
+# # sorting the dataframe based on the defined order
+# president_num_sentences.sort_values('president', inplace=True)
+# president_num_sentences.reset_index(drop=True, inplace=True)
 
-# creating the sentence-count plot
-plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
+# # creating the sentence-count plot
+# plt.bar(president_num_sentences['president'], president_num_sentences['num_sentences'], color=rdgy_palette[0]) 
 
-# customizing the sentence-count plot
-plt.xlabel("President", fontweight='bold', family='Andale Mono')
-plt.ylabel("Number of Sentences", fontweight='bold', family='Andale Mono')
-plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
-plt.yticks(fontweight='bold', family='Andale Mono')
-plt.title("", fontweight='bold', ha='center')
-plt.grid(False)
-plt.tight_layout()
-plt.savefig(f'EDA/president_num_sentences.png', bbox_inches='tight')
-plt.close() 
+# # customizing the sentence-count plot
+# plt.xlabel("President", fontweight='bold', family='Andale Mono')
+# plt.ylabel("Number of Sentences", fontweight='bold', family='Andale Mono')
+# plt.xticks(rotation=55, horizontalalignment='right', fontweight='bold', family='Andale Mono')
+# plt.yticks(fontweight='bold', family='Andale Mono')
+# plt.title("", fontweight='bold', ha='center')
+# plt.grid(False)
+# plt.tight_layout()
+# plt.savefig(f'EDA/president_num_sentences.png', bbox_inches='tight')
+# plt.close() 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -314,60 +326,60 @@ plt.close()
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot top frequent words across all speeches and stratified by president
 #---------------------------------------------------------------------------------------------------------------------------------------------------------
-# add a new column 'sentenceID' which is the row number
-sona_sentences['sentenceID'] = range(1, len(sona_sentences) + 1)
+# # add a new column 'sentenceID' which is the row number
+# sona_sentences['sentenceID'] = range(1, len(sona_sentences) + 1)
 
-# tokenize each sentence into words and create a new dataframe
-sona_words = sona_sentences['cleaned_sentence'].apply(word_tokenize).explode().reset_index()
-sona_words.columns = ['sentenceID', 'word']
+# # tokenize each sentence into words and create a new dataframe
+# sona_words = sona_sentences['cleaned_sentence'].apply(word_tokenize).explode().reset_index()
+# sona_words.columns = ['sentenceID', 'word']
 
-# counting the occurrences of each word
-word_counts = sona_words['word'].value_counts().reset_index()
-word_counts.columns = ['word', 'n']
+# # counting the occurrences of each word
+# word_counts = sona_words['word'].value_counts().reset_index()
+# word_counts.columns = ['word', 'n']
 
-# find the top 15 most frequent words
-top_words = word_counts.head(15)
+# # find the top 15 most frequent words
+# top_words = word_counts.head(15)
 
-# sort the words for better visualization
-top_words = top_words.sort_values(by='n', ascending=True)
+# # sort the words for better visualization
+# top_words = top_words.sort_values(by='n', ascending=True)
 
-# plot the top 15 most frequent words across all speeches
-plt.figure(figsize=(10, 6))
-sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
+# # plot the top 15 most frequent words across all speeches
+# plt.figure(figsize=(10, 6))
+# sns.barplot(x='n', y='word', data=top_words, color=rdgy_palette[0])  
 
-# Customizing the plot
-plt.xlabel("Number of times word appears", fontweight='bold')
-plt.ylabel("", fontweight='bold', family='Andale Mono')
-plt.xticks(fontweight='bold', family='Andale Mono')
-plt.yticks(fontweight='bold', family='Andale Mono')
-plt.title("", fontweight='bold', ha='center')
-plt.grid(False)
-sns.set_style("whitegrid")
-plt.tight_layout()
-plt.savefig(f'EDA/top_words.png', bbox_inches='tight')
-plt.close() 
+# # Customizing the plot
+# plt.xlabel("Number of times word appears", fontweight='bold')
+# plt.ylabel("", fontweight='bold', family='Andale Mono')
+# plt.xticks(fontweight='bold', family='Andale Mono')
+# plt.yticks(fontweight='bold', family='Andale Mono')
+# plt.title("", fontweight='bold', ha='center')
+# plt.grid(False)
+# sns.set_style("whitegrid")
+# plt.tight_layout()
+# plt.savefig(f'EDA/top_words.png', bbox_inches='tight')
+# plt.close() 
 
-# Assuming sona_words DataFrame is already defined and contains the 'word' column
-# Count the occurrences of each word
-word_counts_all = sona_words['word'].value_counts().head(15)
+# # Assuming sona_words DataFrame is already defined and contains the 'word' column
+# # Count the occurrences of each word
+# word_counts_all = sona_words['word'].value_counts().head(15)
 
-# Sort the words for better visualization
-word_counts_all = word_counts_all.sort_values()
+# # Sort the words for better visualization
+# word_counts_all = word_counts_all.sort_values()
 
-# Define a RdGy-like color palette
-rdgy_palette = sns.color_palette("RdGy", n_colors=10)
+# # Define a RdGy-like color palette
+# rdgy_palette = sns.color_palette("RdGy", n_colors=10)
 
-# Assuming 'president' is a column in the sona_words DataFrame
-# Filter the top 15 words for each president
-top_words_per_president = sona_words.groupby('president')['word'].value_counts().groupby(level=0).head(15).reset_index(name='count')
+# # Assuming 'president' is a column in the sona_words DataFrame
+# # Filter the top 15 words for each president
+# top_words_per_president = sona_words.groupby('president')['word'].value_counts().groupby(level=0).head(15).reset_index(name='count')
 
-# Create a facetted bar plot
-g = sns.catplot(x='count', y='word', col='president', col_wrap=4, data=top_words_per_president, kind='bar', palette=rdgy_palette)
-g.set_axis_labels("Number of times word appears", "")
-g.set_titles("{col_name}")
-plt.savefig(f'EDA/top_words_per_president.png', bbox_inches='tight')
-plt.close() 
-#---------------------------------------------------------------------------------------------------------------------------------------------------------
+# # Create a facetted bar plot
+# g = sns.catplot(x='count', y='word', col='president', col_wrap=4, data=top_words_per_president, kind='bar', palette=rdgy_palette)
+# g.set_axis_labels("Number of times word appears", "")
+# g.set_titles("{col_name}")
+# plt.savefig(f'EDA/top_words_per_president.png', bbox_inches='tight')
+# plt.close() 
+# #---------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 
@@ -377,7 +389,6 @@ plt.close()
 
 ![Most frequent words stated across all speeches, stratified by president.](EDA/top_words_per_president.png){#fig-top_words_per_president}
 @fig-top_words_per_president 
-
 
 
 ```{python}
@@ -392,10 +403,27 @@ bow_features.shape
 tfidf_vectorizer = TfidfVectorizer(max_features=150)
 tfidf_features = tfidf_vectorizer.fit_transform(sona_sentences['cleaned_sentence']).toarray()
 
-# create embeddings
+# create embeddings for other models
 tokenized_speeches = [text.split() for text in sona_sentences['cleaned_sentence']]
 model = Word2Vec(sentences=tokenized_speeches, vector_size=150, window=5, min_count=1, workers=4)
 embeddings_features = np.array([np.mean([model.wv[word] for word in text.split() if word in model.wv] or [np.zeros(150)], axis=0) for text in sona_sentences['cleaned_sentence']])
+
+def sentence_to_avg_vector(sentence, model):
+    return np.mean([model.wv[word] for word in sentence.split() if word in model.wv] or [np.zeros(model.vector_size)], axis=0)
+
+# Convert sentences to sequences of vectors
+vector_sequences = [[model.wv[word] for word in sentence.split() if word in model.wv] for sentence in sona_sentences['cleaned_sentence']]
+
+# Determine the length of the longest sequence
+max_seq_length = max(len(sequence) for sequence in vector_sequences)
+
+# Pad sequences to have the same length
+padded_sequences = pad_sequences(vector_sequences, maxlen=max_seq_length, padding='post', dtype='float32', value=0)
+
+# Split data into training, validation, and test sets
+X_train_rnnemb, X_temp_rnnemb, y_train, y_temp = train_test_split(padded_sequences, labels, test_size=0.4, random_state=seed, stratify=labels)
+X_val_rnnemb, X_test_rnnemb, y_val, y_test = train_test_split(X_temp_rnnemb, y_temp, test_size=0.5, random_state=seed, stratify=y_temp)
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -423,27 +451,74 @@ X_val_emb, X_test_emb = train_test_split(X_temp_emb, test_size=0.5, random_state
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
+
+```{python}
+
+def decision_tree_analysis(X_train, X_val, X_test, y_train, y_val, y_test, feature_set_name, results_dir='results'):
+    # Define file paths
+    model_path = os.path.join(results_dir, f'tree_clf_{feature_set_name}.pkl')
+    plot_path = os.path.join(results_dir, f'cv_results_{feature_set_name}.png')
+
+    # Check if results already exist
+    if os.path.exists(model_path):
+        tree_clf = joblib.load(model_path)
+    else:
+        # Hyperparameter grid search
+        tree_params = {'max_depth': [3, 5, 7], 'min_samples_split': [2, 5, 10]}
+        tree_clf = GridSearchCV(DecisionTreeClassifier(), tree_params, cv=5, n_jobs=-1)
+        tree_clf.fit(X_train, y_train)
+
+        # Save the trained model
+        os.makedirs(results_dir, exist_ok=True)
+        joblib.dump(tree_clf, model_path)
+
+    # Predictions and evaluation on test set
+    y_pred_tree_test = tree_clf.predict(X_test)
+    print(f"Best parameters ({feature_set_name}):", tree_clf.best_params_)
+    print(f"\nClassification Report on Test Set (Classification Tree - {feature_set_name}):")
+    print(classification_report(y_test, y_pred_tree_test))
+
+    # Predictions and evaluation on validation set
+    y_pred_tree_val = tree_clf.predict(X_val)
+    print(f"\nClassification Report on Validation Set (Classification Tree - {feature_set_name}):")
+    print(classification_report(y_val, y_pred_tree_val))
+
+    # Confusion matrix for test set
+    conf_matrix_tree_test = confusion_matrix(y_test, y_pred_tree_test)
+    sns.heatmap(conf_matrix_tree_test, annot=True, fmt='g')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title(f'Confusion Matrix on Test Set - {feature_set_name}')
+    plt.show()
+
+    # Extract and plot results
+    results = tree_clf.cv_results_
+    df = pd.DataFrame({
+        'max_depth': results['param_max_depth'],
+        'min_samples_split': results['param_min_samples_split'],
+        'mean_test_score': results['mean_test_score']
+    })
+    pivoted = df.pivot(index='max_depth', columns='min_samples_split', values='mean_test_score')
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(pivoted, annot=True, cmap='viridis')
+    plt.title(f'Mean CV Score Heatmap - {feature_set_name}')
+    plt.xlabel('Min Samples Split')
+    plt.ylabel('Max Depth')
+    plt.savefig(plot_path)
+    plt.show()
+
+
+```
+
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Classification tree  ~ for BoW approach
 #---------------------------------------------------------------------------------------------------------------------------
-tree_params = {'max_depth': [3, 5, 10], 'min_samples_split': [2, 5, 10]}
-# hyperparameter gridsearch 
-tree_clf_bow = GridSearchCV(DecisionTreeClassifier(), tree_params, cv=5) 
-tree_clf_bow.fit(X_train_bow, y_train)
 
-# predictions and evaluation
-y_pred_tree_bow = tree_clf_bow.predict(X_test_bow)
-print("Best parameters:", tree_clf_bow.best_params_)
-print("\nClassification Report (Classification Tree - BoW):")
-print(classification_report(y_test, y_pred_tree_bow))
+decision_tree_analysis(X_train_bow, X_val_bow, X_test_bow, y_train, y_val, y_test, 'bow')
 
-# confusion matrix
-conf_matrix_tree_bow = confusion_matrix(y_test, y_pred_tree_bow)
-sns.heatmap(conf_matrix_tree_bow, annot=True, fmt='g',cmap=rdgy_palette)
-plt.xlabel('Predicted', fontweight='bold', family='Andale Mono')
-plt.ylabel('Actual', fontweight='bold', family='Andale Mono')
-plt.show()
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -451,23 +526,9 @@ plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 # Classification tree  ~ for tf-idf approach
 #---------------------------------------------------------------------------------------------------------------------------
-tree_params = {'max_depth': [3, 5, 10], 'min_samples_split': [2, 5, 10]}
-# hyperparameter gridsearch 
-tree_clf_tfidf = GridSearchCV(DecisionTreeClassifier(), tree_params, cv=5) 
-tree_clf_tfidf.fit(X_train_tfidf, y_train)
 
-# predictions and evaluation
-y_pred_tree_tfidf = tree_clf_tfidf.predict(X_test_tfidf)
-print("Best parameters:", tree_clf_tfidf.best_params_)
-print("\nClassification Report (Classification Tree - tf-idf):")
-print(classification_report(y_test, y_pred_tree_tfidf))
+decision_tree_analysis(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val, y_test, 'tfidf')
 
-# confusion matrix
-conf_matrix_tree_tfidf = confusion_matrix(y_test, y_pred_tree_tfidf)
-sns.heatmap(conf_matrix_tree_tfidf, annot=True, fmt='g', cmap=rdgy_palette)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -476,49 +537,102 @@ plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 # Classification tree  ~ for embedding approach
 #---------------------------------------------------------------------------------------------------------------------------
-tree_params = {'max_depth': [3, 5, 10], 'min_samples_split': [2, 5, 10]}
-# hyperparameter gridsearch 
-tree_clf_emb = GridSearchCV(DecisionTreeClassifier(), tree_params, cv=5) 
-tree_clf_emb.fit(X_train_emb, y_train)
 
-# predictions and evaluation
-y_pred_tree_emb = tree_clf_emb.predict(X_test_emb)
-print("Best parameters:", tree_clf_emb.best_params_)
-print("\nClassification Report (Classification Tree - embedding):")
-print(classification_report(y_test, y_pred_tree_emb))
+decision_tree_analysis(X_train_emb, X_val_emb, X_test_emb, y_train, y_val, y_test, 'embedding')
 
-# confusion matrix
-conf_matrix_tree_emb = confusion_matrix(y_test, y_pred_tree_emb)
-sns.heatmap(conf_matrix_tree_emb, annot=True, fmt='g', cmap=rdgy_palette)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
+
+```{python}
+
+def create_model(hidden_layer_sizes, activation, input_shape, num_classes):
+    model = Sequential()
+    for i, layer_size in enumerate(hidden_layer_sizes):
+        if i == 0:
+            model.add(Dense(layer_size, activation=activation, input_shape=input_shape))
+        else:
+            model.add(Dense(layer_size, activation=activation))
+    model.add(Dense(num_classes, activation='softmax'))  # Output layer
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+def train_and_evaluate_model(X_train, X_val, X_test, y_train, y_val, y_test, hidden_layer_sizes, activation, feature_set_name, results_dir='model_results', epochs=100, batch_size=32):
+    # Encoding target variables
+    label_encoder = LabelEncoder()
+    y_train_encoded = label_encoder.fit_transform(y_train)
+    y_val_encoded = label_encoder.transform(y_val)
+    y_test_encoded = label_encoder.transform(y_test)
+
+    num_classes = len(np.unique(y_train_encoded))
+
+    # Check if model and history already exist
+    model_path = os.path.join(results_dir, f'model_{feature_set_name}_{hidden_layer_sizes}_{activation}.h5')
+    history_path = os.path.join(results_dir, f'history_{feature_set_name}_{hidden_layer_sizes}_{activation}.pkl')
+
+    if os.path.exists(model_path) and os.path.exists(history_path):
+        model = tf.keras.models.load_model(model_path)
+        history = joblib.load(history_path)
+    else:
+        # Create and train the model
+        model = create_model(hidden_layer_sizes, activation, (X_train.shape[1],), num_classes)
+        history = model.fit(X_train, y_train_encoded, validation_data=(X_val, y_val_encoded), epochs=epochs, batch_size=batch_size, verbose=0)
+
+        # Save the model and history
+        os.makedirs(results_dir, exist_ok=True)
+        model.save(model_path)
+        joblib.dump(history.history, history_path)
+
+    
+    # Check if history is a dict (loaded from file) or a History object (from training)
+    if isinstance(history, dict):
+        loss = history['loss']
+        val_loss = history['val_loss']
+    else:  # If it's a History object
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
+
+    # Plot training & validation loss values
+    plt.plot(loss)
+    plt.plot(val_loss)
+    plt.title(f'Model Loss - {feature_set_name} - {hidden_layer_sizes} - {activation}')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
+    # Evaluate the model on the test set
+    y_pred_encoded = np.argmax(model.predict(X_test), axis=1)
+    y_pred = label_encoder.inverse_transform(y_pred_encoded)
+    print(f"\nClassification Report ({feature_set_name} - {hidden_layer_sizes} - {activation}):")
+    print(classification_report(y_test, y_pred))
+
+    # Confusion Matrix
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    sns.heatmap(conf_matrix, annot=True, fmt='g')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title(f'Confusion Matrix - {feature_set_name} - {hidden_layer_sizes} - {activation}')
+    plt.show()
+
+    return model, history
+
+```
 
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Feed-forward neural network ~ for BoW approach
 #---------------------------------------------------------------------------------------------------------------------------
-fnn_params = {'hidden_layer_sizes': [(100,), (100, 50)], 'activation': ['relu', 'tanh']}
-# hyperparameter gridsearch 
-fnn_clf_bow = GridSearchCV(MLPClassifier(max_iter=1000), fnn_params, cv=5)
-fnn_clf_bow.fit(X_train_bow, y_train)
 
-# Predictions and Evaluation
-y_pred_fnn_bow = fnn_clf_bow.predict(X_test_bow)
-print("Best parameters:", fnn_clf_bow.best_params_)
-print("\nClassification Report (Feed-forward NN - BoW):")
-print(classification_report(y_test, y_pred_fnn_bow))
+fnn_params = [(100,), (100, 50)]
+activations = ['relu', 'tanh']
 
-# Confusion Matrix
-conf_matrix_fnn_bow = confusion_matrix(y_test, y_pred_fnn_bow)
-sns.heatmap(conf_matrix_fnn_bow, annot=True, fmt='g',cmap=rdgy_palette)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
+for hidden_layers in fnn_params:
+    for activation in activations:
+        print(f"\nTraining model with {hidden_layers} hidden layers and {activation} activation")
+        train_and_evaluate_model(X_train_bow, X_val_bow, X_test_bow, y_train, y_val, y_test, hidden_layers, activation, 'bow')
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -527,23 +641,15 @@ plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 # Feed-forward neural network ~ for tf-idf approach
 #---------------------------------------------------------------------------------------------------------------------------
-fnn_params = {'hidden_layer_sizes': [(100,), (100, 50)], 'activation': ['relu', 'tanh']}
-# hyperparameter gridsearch 
-fnn_clf_tfidf = GridSearchCV(MLPClassifier(max_iter=1000), fnn_params, cv=5)
-fnn_clf_tfidf.fit(X_train_tfidf, y_train)
 
-# Predictions and Evaluation
-y_pred_fnn_tfidf = fnn_clf_tfidf.predict(X_test_tfidf)
-print("Best parameters:", fnn_clf_tfidf.best_params_)
-print("\nClassification Report (Feed-forward NN - tf-idf):")
-print(classification_report(y_test, y_pred_fnn_tfidf))
+fnn_params = [(100,), (100, 50)]
+activations = ['relu', 'tanh']
 
-# Confusion Matrix
-conf_matrix_fnn_tfidf = confusion_matrix(y_test, y_pred_fnn_tfidf)
-sns.heatmap(conf_matrix_fnn_tfidf, annot=True, fmt='g', cmap=rdgy_palette)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
+for hidden_layers in fnn_params:
+    for activation in activations:
+        print(f"\nTraining model with {hidden_layers} hidden layers and {activation} activation")
+        train_and_evaluate_model(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val, y_test, hidden_layers, activation, 'tf-idf')
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -551,42 +657,313 @@ plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 # Feed-forward neural network ~ for embedding approach
 #---------------------------------------------------------------------------------------------------------------------------
-fnn_params = {'hidden_layer_sizes': [(100,), (100, 50)], 'activation': ['relu', 'tanh']}
-# hyperparameter gridsearch 
-fnn_clf_emb = GridSearchCV(MLPClassifier(max_iter=1000), fnn_params, cv=5)
-fnn_clf_emb.fit(X_train_emb, y_train)
 
-# Predictions and Evaluation
-y_pred_fnn_emb = fnn_clf_emb.predict(X_test_emb)
-print("Best parameters:", fnn_clf_emb.best_params_)
-print("\nClassification Report (Feed-forward NN - embedding):")
-print(classification_report(y_test, y_pred_fnn_emb))
+fnn_params = [(100,), (100, 50)]
+activations = ['relu', 'tanh']
 
-# Confusion Matrix
-conf_matrix_fnn_emb = confusion_matrix(y_test, y_pred_fnn_emb)
-sns.heatmap(conf_matrix_fnn_emb, annot=True, fmt='g', cmap=rdgy_palette)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
+for hidden_layers in fnn_params:
+    for activation in activations:
+        print(f"\nTraining model with {hidden_layers} hidden layers and {activation} activation")
+        train_and_evaluate_model(X_train_emb, X_val_emb, X_test_emb, y_train, y_val, y_test, hidden_layers, activation, 'embedding')
 
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
 
+```{python}
+
+def create_cnn_model(input_shape, num_classes, filters, kernel_size, dropout_rate):
+    model = Sequential()
+    model.add(Input(shape=input_shape))  # Adjust to the shape of your features
+    model.add(Reshape((input_shape[0], 1)))  # Add a reshape layer to make it compatible with Conv1D
+    model.add(Conv1D(filters=filters, kernel_size=kernel_size, activation='relu'))
+    model.add(GlobalMaxPooling1D())
+    model.add(Dropout(rate=dropout_rate))
+    model.add(Dense(num_classes, activation='softmax'))  # Output layer
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+def train_and_evaluate_cnn_model(X_train, X_val, X_test, y_train, y_val, y_test, filters, kernel_size, dropout_rate, feature_set_name, results_dir='model_results', epochs=100, batch_size=32):
+    # Encoding target variables
+    label_encoder = LabelEncoder()
+    y_train_encoded = label_encoder.fit_transform(y_train)
+    y_val_encoded = label_encoder.transform(y_val)
+    y_test_encoded = label_encoder.transform(y_test)
+
+    num_classes = len(np.unique(y_train_encoded))
+
+    # Check if model and history already exist
+    model_path = os.path.join(results_dir, f'cnn_model_{feature_set_name}_{filters}_{kernel_size}_{dropout_rate}.h5')
+    history_path = os.path.join(results_dir, f'cnn_history_{feature_set_name}_{filters}_{kernel_size}_{dropout_rate}.pkl')
+
+    if os.path.exists(model_path) and os.path.exists(history_path):
+        model = tf.keras.models.load_model(model_path)
+        history = joblib.load(history_path)
+    else:
+        # Create and train the model
+        model = create_cnn_model((X_train.shape[1],), num_classes, filters, kernel_size, dropout_rate)
+        history = model.fit(X_train, y_train_encoded, validation_data=(X_val, y_val_encoded), epochs=epochs, batch_size=batch_size, verbose=0)
+
+        # Save the model and history
+        os.makedirs(results_dir, exist_ok=True)
+        model.save(model_path)
+        joblib.dump(history.history, history_path)
+
+    # Check if history is a dict (loaded from file) or a History object (from training)
+    if isinstance(history, dict):
+        loss = history['loss']
+        val_loss = history['val_loss']
+    else:  # If it's a History object
+        loss = history.history['loss']
+        val_loss = history.history['val_loss']
+
+    # Plot training & validation loss values
+    plt.plot(loss)
+    plt.plot(val_loss)
+    plt.title(f'CNN Model Loss - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
+    # Evaluate the model on the test set
+    y_pred_encoded = np.argmax(model.predict(X_test), axis=1)
+    y_pred = label_encoder.inverse_transform(y_pred_encoded)
+    print(f"\nClassification Report (CNN - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}):")
+    print(classification_report(y_test, y_pred))
+
+    # Confusion Matrix
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    sns.heatmap(conf_matrix, annot=True, fmt='g')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title(f'CNN Confusion Matrix - {feature_set_name} - Filters:{filters} Kernel:{kernel_size} Dropout:{dropout_rate}')
+    plt.show()
+
+    return model, history
+
+
+# Define a small set of hyperparameters for the search
+filters_options = [64, 128]  # Number of filters
+kernel_size_options = [3, 5]  # Size of the convolutional kernels
+dropout_rate_options = [0.2, 0.5]  # Dropout rates
+
+```
+
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
-#  Recurrent neural network ~ defined for all approaches
+# Convolutional neural network ~ for BoW approach
 #---------------------------------------------------------------------------------------------------------------------------
-def build_rnn_model(hp):
+
+# Define other parameters
+feature_set_name = "BoW" 
+epochs = 10  
+batch_size = 32 
+results_dir = "cnn_bow_results"
+
+# Prepare a list to store the results
+search_results = []
+
+# Iterate over all combinations of hyperparameters
+for filters in filters_options:
+    for kernel_size in kernel_size_options:
+        for dropout_rate in dropout_rate_options:
+            print(f"Training model with filters={filters}, kernel_size={kernel_size}, dropout_rate={dropout_rate}")
+
+            # Train and evaluate the model
+            model, history = train_and_evaluate_cnn_model(X_train_bow, X_val_bow, X_test_bow, y_train, y_val, y_test, filters, kernel_size, dropout_rate, feature_set_name, results_dir, epochs, batch_size)
+
+            # Get the best validation accuracy from the history
+            best_val_accuracy = max(history.history['val_accuracy'])
+
+            # Store the results
+            search_results.append({
+                'filters': filters,
+                'kernel_size': kernel_size,
+                'dropout_rate': dropout_rate,
+                'best_val_accuracy': best_val_accuracy
+            })
+
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+
+# Print the results
+for result in search_results:
+    print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
+
+#---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# Convolutional neural network ~ for tf-idf approach
+#---------------------------------------------------------------------------------------------------------------------------
+# Define other parameters
+feature_set_name = "tf-idf" 
+epochs = 10  
+batch_size = 32 
+results_dir = "cnn_tfidf_results"
+
+# Prepare a list to store the results
+search_results = []
+
+# Iterate over all combinations of hyperparameters
+for filters in filters_options:
+    for kernel_size in kernel_size_options:
+        for dropout_rate in dropout_rate_options:
+            print(f"Training model with filters={filters}, kernel_size={kernel_size}, dropout_rate={dropout_rate}")
+
+            # Train and evaluate the model
+            model, history = train_and_evaluate_cnn_model(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val, y_test, filters, kernel_size, dropout_rate, feature_set_name, results_dir, epochs, batch_size)
+
+            # Get the best validation accuracy from the history
+            best_val_accuracy = max(history.history['val_accuracy'])
+
+            # Store the results
+            search_results.append({
+                'filters': filters,
+                'kernel_size': kernel_size,
+                'dropout_rate': dropout_rate,
+                'best_val_accuracy': best_val_accuracy
+            })
+
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+
+# Print the results
+for result in search_results:
+    print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
+#---------------------------------------------------------------------------------------------------------------------------
+```
+
+
+```{python}
+#---------------------------------------------------------------------------------------------------------------------------
+# Convolutional neural network ~ for embedding approach
+#---------------------------------------------------------------------------------------------------------------------------
+# Define other parameters
+feature_set_name = "Embedding" 
+epochs = 10  
+batch_size = 32 
+results_dir = "cnn_emb_results"
+
+# Prepare a list to store the results
+search_results = []
+
+# Iterate over all combinations of hyperparameters
+for filters in filters_options:
+    for kernel_size in kernel_size_options:
+        for dropout_rate in dropout_rate_options:
+            print(f"Training model with filters={filters}, kernel_size={kernel_size}, dropout_rate={dropout_rate}")
+
+            # Train and evaluate the model
+            model, history = train_and_evaluate_cnn_model(X_train_emb, X_val_emb, X_test_emb, y_train, y_val, y_test, filters, kernel_size, dropout_rate, feature_set_name, results_dir, epochs, batch_size)
+
+            # Get the best validation accuracy from the history
+            best_val_accuracy = max(history.history['val_accuracy'])
+
+            # Store the results
+            search_results.append({
+                'filters': filters,
+                'kernel_size': kernel_size,
+                'dropout_rate': dropout_rate,
+                'best_val_accuracy': best_val_accuracy
+            })
+
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+
+# Print the results
+for result in search_results:
+    print(f"Filters: {result['filters']}, Kernel Size: {result['kernel_size']}, Dropout Rate: {result['dropout_rate']}, Best Val Accuracy: {result['best_val_accuracy']}")
+
+```
+
+```{python}
+
+def build_rnn_model(input_shape, num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout):
     model = Sequential()
-    model.add(Embedding(input_dim=150, output_dim=hp.Int('embedding_output', min_value=32, max_value=128, step=32), input_length=150))
-    model.add(SpatialDropout1D(hp.Float('spatial_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(LSTM(units=hp.Int('lstm_units', min_value=50, max_value=150, step=25), dropout=hp.Float('dropout', min_value=0.0, max_value=0.5, step=0.1), recurrent_dropout=hp.Float('recurrent_dropout', min_value=0.0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
+    # Reshape layer to convert 2D input to 3D
+    model.add(Reshape((input_shape[0], 1), input_shape=input_shape)) 
+    model.add(SpatialDropout1D(spatial_dropout))
+    model.add(LSTM(units=lstm_units, dropout=dropout, recurrent_dropout=recurrent_dropout))
+    model.add(Dense(units=num_classes, activation='softmax'))
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     return model
+
+def build_rnn_model2(num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout, input_shape):
+    model = Sequential()
+    # Ensure the input shape is set correctly
+    model.add(SpatialDropout1D(spatial_dropout, input_shape=input_shape)) 
+    model.add(LSTM(units=lstm_units, dropout=dropout, recurrent_dropout=recurrent_dropout))
+    model.add(Dense(units=num_classes, activation='softmax'))
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+
+def train_and_evaluate_rnn_model(X_train, X_val, X_test, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir='model_results', epochs=100, batch_size=32):
+    # Encoding target variables
+    label_encoder = LabelEncoder()
+    y_train_encoded = to_categorical(label_encoder.fit_transform(y_train))
+    y_val_encoded = to_categorical(label_encoder.transform(y_val))
+    y_test_encoded = to_categorical(label_encoder.transform(y_test))
+
+    num_classes = y_train_encoded.shape[1]
+
+    # Check if model and history already exist
+    model_path = os.path.join(results_dir, f'rnn_model_{feature_set_name}_{lstm_units}_{spatial_dropout}_{dropout}_{recurrent_dropout}.h5')
+    history_path = os.path.join(results_dir, f'rnn_history_{feature_set_name}_{lstm_units}_{spatial_dropout}_{dropout}_{recurrent_dropout}.pkl')
+
+    if os.path.exists(model_path) and os.path.exists(history_path):
+        model = tf.keras.models.load_model(model_path)
+        history = joblib.load(history_path)
+    else:
+        # Create and train the model
+        if feature_set_name == 'Embedding':
+            input_shape = (X_train.shape[1], X_train.shape[2])  # (118, 150)
+            model = build_rnn_model2(num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout, input_shape)
+        else:
+            model = build_rnn_model((X_train.shape[1],), num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout)
+        history = model.fit(X_train, y_train_encoded, validation_data=(X_val, y_val_encoded), epochs=epochs, batch_size=batch_size, verbose=0)
+
+        # Save the model and history
+        os.makedirs(results_dir, exist_ok=True)
+        model.save(model_path)
+        joblib.dump(history.history, history_path)
+
+    # Plotting training & validation accuracy values
+    if isinstance(history, dict):
+        accuracy = history['accuracy']
+        val_accuracy = history['val_accuracy']
+    else:  # If it's a History object
+        accuracy = history.history['accuracy']
+        val_accuracy = history.history['val_accuracy']
+
+    plt.plot(accuracy)
+    plt.plot(val_accuracy)
+    plt.title(f'RNN Model Accuracy - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
+    # Evaluate the model on the test set
+    y_pred_encoded = np.argmax(model.predict(X_test), axis=1)
+    y_pred = label_encoder.inverse_transform(y_pred_encoded)
+    print(f"\nClassification Report (RNN - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}):")
+    print(classification_report(y_test, y_pred))
+
+    # Confusion Matrix
+    conf_matrix = confusion_matrix(y_test, y_pred)
+    sns.heatmap(conf_matrix, annot=True, fmt='g')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title(f'RNN Confusion Matrix - {feature_set_name} - LSTM:{lstm_units} SpatialDropout:{spatial_dropout} Dropout:{dropout} RecurrentDropout:{recurrent_dropout}')
+    plt.show()
+
+    return model, history
 
 ```
 
@@ -595,43 +972,53 @@ def build_rnn_model(hp):
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for BoW approach
 #---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
 
-# RNN Tuner
-rnn_tuner_bow = RandomSearch(build_rnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='rnn_tuner', project_name='RNNHyperparamTuning')
-rnn_tuner_bow.search(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
+# Define other parameters
+feature_set_name = "BoW" 
+epochs = 10  
+batch_size = 32 
+results_dir = "rnn_bow_results"
 
-# Fit the best model
-best_hps_rnn_bow = rnn_tuner_bow.get_best_hyperparameters(num_trials=1)[0]
-best_rnn_model_bow = build_rnn_model(best_hps_rnn_bow)
-history_rnn_bow = best_rnn_model_bow.fit(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
+# Hyperparameter options for RNN
+lstm_units_options = [50, 75]
+spatial_dropout_options = [0.0, 0.2]
+dropout_options = [0.2]
+recurrent_dropout_options = [0.2]
 
-# Predictions and Evaluation
-y_pred_rnn_bow = best_rnn_model_bow.predict(X_test_bow)
-y_pred_rnn_labels_bow = np.argmax(y_pred_rnn_bow, axis=1)
-y_test_label_bow = np.argmax(y_test_nn, axis=1)
+# Prepare a list to store the results
+search_results = []
 
-print("\nClassification Report (RNN - BoW):")
-print(classification_report(y_test_label_bow, y_pred_rnn_labels_bow))
+# Iterate over all combinations of hyperparameters
+for lstm_units in lstm_units_options:
+    for spatial_dropout in spatial_dropout_options:
+        for dropout in dropout_options:
+            for recurrent_dropout in recurrent_dropout_options:
 
-# Confusion Matrix
-conf_matrix_rnn_bow = confusion_matrix(y_test_label_bow, y_pred_rnn_labels_bow)
-sns.heatmap(conf_matrix_rnn_bow, annot=True, fmt='g', cmap=rdgy_palette)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
+                # Train and evaluate the model
+                model, history = train_and_evaluate_rnn_model(X_train_bow, X_val_bow, X_test_bow, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
 
-# Plotting accuracy curves
-plt.plot(history_rnn_bow.history['accuracy'], color=rdgy_palette[9])
-plt.plot(history_rnn_bow.history['val_accuracy'], color=rdgy_palette[0])
-plt.title('RNN Model Accuracy - BoW')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
+                # Get the best validation accuracy from the history
+                if isinstance(history, dict):
+                    best_val_accuracy = max(history['val_accuracy'])
+                else:  # If it's a History object
+                    best_val_accuracy = max(history.history['val_accuracy'])
+
+                # Store the results
+                search_results.append({
+                    'lstm_units': lstm_units,
+                    'spatial_dropout': spatial_dropout,
+                    'dropout': dropout,
+                    'recurrent_dropout': recurrent_dropout,
+                    'best_val_accuracy': best_val_accuracy
+                })
+
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+
+# Print the results
+for result in search_results:
+    print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
+
 #---------------------------------------------------------------------------------------------------------------------------
 ```
 
@@ -641,266 +1028,106 @@ plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for tf-idf approach
 #---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
+# Define other parameters
+feature_set_name = "tf-idf" 
+epochs = 10  
+batch_size = 32 
+results_dir = "rnn_tfidf_results"
 
-# RNN Tuner
-rnn_tuner_tfidf = RandomSearch(build_rnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='rnn_tuner', project_name='RNNHyperparamTuning')
-rnn_tuner_tfidf.search(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
+# Hyperparameter options for RNN
+lstm_units_options = [50, 75]
+spatial_dropout_options = [0.0, 0.2]
+dropout_options = [0.2]
+recurrent_dropout_options = [0.2]
 
-# Fit the best model
-best_hps_rnn_tfidf = rnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
-best_rnn_model_tfidf = build_rnn_model(best_hps_rnn_tfidf)
-history_rnn_tfidf = best_rnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
+# Prepare a list to store the results
+search_results = []
 
-# Predictions and Evaluation
-y_pred_rnn_tfidf = best_rnn_model_tfidf.predict(X_test_tfidf)
-y_pred_rnn_labels_tfidf = np.argmax(y_pred_rnn_tfidf, axis=1)
-y_test_label_tfidf = np.argmax(y_test_nn, axis=1)
+# Iterate over all combinations of hyperparameters
 
-print("\nClassification Report (RNN - tf-idf):")
-print(classification_report(y_test_label_tfidf, y_pred_rnn_labels_tfidf))
+for lstm_units in lstm_units_options:
+    for spatial_dropout in spatial_dropout_options:
+        for dropout in dropout_options:
+            for recurrent_dropout in recurrent_dropout_options:
 
-# Confusion Matrix
-conf_matrix_rnn_tfidf = confusion_matrix(y_test_label_tfidf, y_pred_rnn_labels_tfidf)
-sns.heatmap(conf_matrix_rnn_tfidf, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
+                # Train and evaluate the model
+                model, history = train_and_evaluate_rnn_model(X_train_tfidf, X_val_tfidf, X_test_tfidf, y_train, y_val, y_test, lstm_units, spatial_dropout, dropout, recurrent_dropout, feature_set_name, results_dir, epochs, batch_size)
 
-# Plotting accuracy curves
-plt.plot(history_rnn_tfidf.history['accuracy'], color=rdgy_palette[9])
-plt.plot(history_rnn_tfidf.history['val_accuracy'], color=rdgy_palette[0])
-plt.title('RNN Model Accuracy - tf-idf')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
+                # Get the best validation accuracy from the history
+                if isinstance(history, dict):
+                    best_val_accuracy = max(history['val_accuracy'])
+                else:  # If it's a History object
+                    best_val_accuracy = max(history.history['val_accuracy'])
+
+                # Store the results
+                search_results.append({
+                    'lstm_units': lstm_units,
+                    'spatial_dropout': spatial_dropout,
+                    'dropout': dropout,
+                    'recurrent_dropout': recurrent_dropout,
+                    'best_val_accuracy': best_val_accuracy
+                })
+
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+
+# Print the results
+for result in search_results:
+    print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
 #---------------------------------------------------------------------------------------------------------------------------
 ```
+
 
 
 ```{python}
 #---------------------------------------------------------------------------------------------------------------------------
 # Recurrent neural network ~ for embedding approach
 #---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
+# Define other parameters
+feature_set_name = "Embedding" 
+epochs = 10  
+batch_size = 32 
+results_dir = "rnn_emb_results"
 
-# RNN Tuner
-rnn_tuner_emb = RandomSearch(build_rnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='rnn_tuner', project_name='RNNHyperparamTuning')
-rnn_tuner_emb.search(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
+# Hyperparameter options for RNN
+lstm_units_options = [50, 75]
+spatial_dropout_options = [0.0, 0.2]
+dropout_options = [0.2]
+recurrent_dropout_options = [0.2]
 
-# Fit the best model
-best_hps_rnn_emb = rnn_tuner_emb.get_best_hyperparameters(num_trials=1)[0]
-best_rnn_model_emb = build_rnn_model(best_hps_rnn_emb)
-history_rnn_emb = best_rnn_model_emb.fit(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
+# Prepare a list to store the results
+search_results = []
 
-# Predictions and Evaluation
-y_pred_rnn_emb = best_rnn_model_emb.predict(X_test_emb)
-y_pred_rnn_labels_emb = np.argmax(y_pred_rnn_emb, axis=1)
-y_test_label_emb = np.argmax(y_test_nn, axis=1)
+# Iterate over all combinations of hyperparameters
+for lstm_units in lstm_units_options:
+    for spatial_dropout in spatial_dropout_options:
+        for dropout in dropout_options:
+            for recurrent_dropout in recurrent_dropout_options:
 
-print("\nClassification Report (RNN - embedding):")
-print(classification_report(y_test_label_emb, y_pred_rnn_labels_emb))
+                # Train and evaluate the model
+                input_shape = (X_train_rnnemb.shape[1], X_train_rnnemb.shape[2])  # (118, 150)
+                model = build_rnn_model2(num_classes, lstm_units, spatial_dropout, dropout, recurrent_dropout, input_shape)
 
-# Confusion Matrix
-conf_matrix_rnn_emb = confusion_matrix(y_test_label_emb, y_pred_rnn_labels_emb)
-sns.heatmap(conf_matrix_rnn_emb, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
+                # Get the best validation accuracy from the history
+                if isinstance(history, dict):
+                    best_val_accuracy = max(history['val_accuracy'])
+                else:  # If it's a History object
+                    best_val_accuracy = max(history.history['val_accuracy'])
 
-# Plotting accuracy curves
-plt.plot(history_rnn_emb.history['accuracy'], color=rdgy_palette[9])
-plt.plot(history_rnn_emb.history['val_accuracy'], color=rdgy_palette[0])
-plt.title('RNN Model Accuracy - embedding')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
+                # Store the results
+                search_results.append({
+                    'lstm_units': lstm_units,
+                    'spatial_dropout': spatial_dropout,
+                    'dropout': dropout,
+                    'recurrent_dropout': recurrent_dropout,
+                    'best_val_accuracy': best_val_accuracy
+                })
+
+# Sort the results by the best validation accuracy
+search_results = sorted(search_results, key=lambda x: x['best_val_accuracy'], reverse=True)
+
+# Print the results
+for result in search_results:
+    print(f"LSTM Units: {result['lstm_units']}, Spatial Dropout: {result['spatial_dropout']}, Dropout: {result['dropout']}, Recurrent Dropout: {result['recurrent_dropout']}, Best Val Accuracy: {result['best_val_accuracy']}")
 #---------------------------------------------------------------------------------------------------------------------------
 ```
-
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-#  Convolutional neural network ~ defined for all approaches
-#---------------------------------------------------------------------------------------------------------------------------
-# define CNN 
-def build_cnn_model(hp):
-    model = Sequential()
-    model.add(Input(shape=(150,)))  # Adjust to the shape of your Word2Vec embeddings
-    model.add(Reshape((150, 1)))  # Add a reshape layer to make it compatible with Conv1D
-    model.add(Conv1D(filters=hp.Int('filters', min_value=64, max_value=256, step=64), 
-                     kernel_size=hp.Choice('kernel_size', values=[3, 5, 7]), 
-                     activation='relu'))
-    model.add(GlobalMaxPooling1D())
-    model.add(Dropout(rate=hp.Float('dropout', min_value=0, max_value=0.5, step=0.1)))
-    model.add(Dense(units=len(y_train_nn[0]), activation='softmax'))
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-    return model
-
-
-```
-
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ for BoW approach
-#---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-
-# CNN tuner
-cnn_tuner_bow = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='cnn_tuner', project_name='CNNHyperparamTuning')
-cnn_tuner_bow.search(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_bow = cnn_tuner_bow.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_bow = build_cnn_model(best_hps_cnn_bow)
-history_cnn_bow = best_cnn_model_bow.fit(X_train_bow, y_train_nn, epochs=10, validation_data=(X_val_bow, y_val_nn))
-
-# predictions and evaluation
-y_pred_cnn_bow = best_cnn_model_bow.predict(X_test_bow)
-y_pred_cnn_labels_bow = np.argmax(y_pred_cnn_bow, axis=1)
-y_test_labels_bow = np.argmax(y_test_nn, axis=1)
-
-print("\nClassification Report (CNN - BoW):")
-print(classification_report(y_test_labels_bow, y_pred_cnn_labels_bow))
-
-# confusion matrix
-conf_matrix_cnn_bow = confusion_matrix(y_test_labels_bow, y_pred_cnn_labels_bow)
-sns.heatmap(conf_matrix_cnn_bow, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
-# plotting accuracy curves
-plt.plot(history_cnn_bow.history['accuracy'], color=rdgy_palette[9])
-plt.plot(history_cnn_bow.history['val_accuracy'], color=rdgy_palette[0])
-plt.title('CNN Model Accuracy - BoW')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
-#---------------------------------------------------------------------------------------------------------------------------
-```
-
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ for tf-idf approach
-#---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-# CNN tuner
-cnn_tuner_tfidf = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=5, executions_per_trial=3, directory='cnn_tuner', project_name='CNNHyperparamTuning')
-cnn_tuner_tfidf.search(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
-history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
-
-# predictions and evaluation
-y_pred_cnn_tfidf = best_cnn_model_tfidf.predict(X_test_tfidf)
-y_pred_cnn_labels_tfidf = np.argmax(y_pred_cnn_tfidf, axis=1)
-y_test_labels_tfidf = np.argmax(y_test_nn, axis=1)
-
-print("\nClassification Report (CNN - tf-idf):")
-print(classification_report(y_test_labels_tfidf, y_pred_cnn_labels_tfidf))
-
-# confusion matrix
-conf_matrix_cnn_tfidf = confusion_matrix(y_test_labels_tfidf, y_pred_cnn_labels_tfidf)
-sns.heatmap(conf_matrix_cnn_tfidf, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
-# plotting accuracy curves
-plt.plot(history_cnn_tfidf.history['accuracy'], color=rdgy_palette[9])
-plt.plot(history_cnn_tfidf.history['val_accuracy'], color=rdgy_palette[0])
-plt.title('CNN Model Accuracy - tf-idf')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
-#---------------------------------------------------------------------------------------------------------------------------
-```
-
-
-```{python}
-#---------------------------------------------------------------------------------------------------------------------------
-# Convolutional neural network ~ for embedding approach
-#---------------------------------------------------------------------------------------------------------------------------
-# prepare features 
-y_train_nn = to_categorical(pd.factorize(y_train)[0])
-y_val_nn = to_categorical(pd.factorize(y_val)[0])
-y_test_nn = to_categorical(pd.factorize(y_test)[0])
-
-# CNN tuner
-cnn_tuner_emb = RandomSearch(build_cnn_model, objective='val_accuracy', max_trials=10, executions_per_trial=5, directory='cnn_tuner', project_name='CNNHyperparamTuning')
-cnn_tuner_emb.search(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_emb = cnn_tuner_emb.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_emb = build_cnn_model(best_hps_cnn_emb)
-history_cnn_emb = best_cnn_model_emb.fit(X_train_emb, y_train_nn, epochs=10, validation_data=(X_val_emb, y_val_nn))
-
-# fit best CNN model 
-best_hps_cnn_tfidf = cnn_tuner_tfidf.get_best_hyperparameters(num_trials=1)[0]
-best_cnn_model_tfidf = build_cnn_model(best_hps_cnn_tfidf)
-history_cnn_tfidf = best_cnn_model_tfidf.fit(X_train_tfidf, y_train_nn, epochs=10, validation_data=(X_val_tfidf, y_val_nn))
-
-# predictions and evaluation
-y_pred_cnn_emb = best_cnn_model_emb.predict(X_test_emb)
-y_pred_cnn_labels_emb = np.argmax(y_pred_cnn_emb, axis=1)
-y_test_labels_emb = np.argmax(y_test_nn, axis=1)
-
-print("\nClassification Report (CNN - embedding):")
-print(classification_report(y_test_labels_emb, y_pred_cnn_labels_emb))
-
-# confusion matrix
-conf_matrix_cnn_emb = confusion_matrix(y_test_labels_emb, y_pred_cnn_labels_emb)
-sns.heatmap(conf_matrix_cnn_emb, annot=True, fmt='g')
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.show()
-
-# plotting accuracy curves
-plt.plot(history_cnn_emb.history['accuracy'], color=rdgy_palette[9])
-plt.plot(history_cnn_emb.history['val_accuracy'], color=rdgy_palette[0])
-plt.title('CNN Model Accuracy - embedding')
-plt.ylabel('Accuracy')
-plt.xlabel('Epoch')
-plt.legend(['Train', 'Validation'], loc='upper left')
-plt.show()
-```
-
-
-
-
-<h4> Discussion and Conclusion </h4> 
-<hr> 
-
-
-<h4> References </h4> 
-<hr> 
-
-</div> 
-
-
-
-
-
