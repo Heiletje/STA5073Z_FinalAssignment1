@@ -3,15 +3,26 @@ project:
   output-dir: docs
 
 website:
-  title: "A Quarto Website"
+  title: "DS4I Assignment 1"
   navbar:
     left:
       - href: index.qmd
         text: Home
       - VZYHEI003.qmd
+      - plaigarism_declaration.qmd
 
 format:
   html:
+    embed-resources: true
     theme: lux
     css: styles.css
     toc: true
+    max-width: 50em
+
+bibliography: references.bib
+
+execute:
+  cache: true
+  echo: false
+
+bibliography: references.bib
