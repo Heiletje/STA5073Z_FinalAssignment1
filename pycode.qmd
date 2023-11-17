@@ -19,6 +19,11 @@ Serving as a foundational-comparative model, a naive classification tree (CT) wa
 
 <h4> Introduction </h4> 
 <hr> 
+The domains of machine learning (ML) and natural language processing (NLP) intersect at text-based analysis involving the underlying aim of prediction. In this instance, the text of interest to analyze are the annual State of the Nation Address (SONA) speeches (from 1994 to 2023), whilst the predictive objective is pointed at determining which one of the six different South African presidents (F.W. de Klerk, N.R. Mandela, T.M. Mbeki, K.P. Motlanthe, J.G. Zuma, and M.C. Ramaphosa) delivered some sentence contained therein. 
+
+In order to achieve this predictive analysis, diverse ML models with differing degrees of complexity are applied. First, in order to form a comparative basis for performance, a naïve classification tree is fitted. This is then followed with the implementation of three types of neural networks (NNs),each with ascending degrees of sophistication, specifically a simple one (feed-forward) and then more complex ones (convolutional and recurrent).
+
+
 
 <h4> Literature Review </h4> 
 <hr> 
@@ -48,6 +53,8 @@ Serving as a foundational-comparative model, a naive classification tree (CT) wa
 <b><u> Convolutional Neural Network (CNN) </b></u>
 
 <b><u> Model performance metrics </b></u>
+
+
 
 
 
@@ -151,6 +158,10 @@ sona_sentences['cleaned_sentence'] = sona_sentences['cleaned_sentence'].apply(la
 ```
 
 
+<h4> Exploratory Data Analysis </h4> 
+<hr> 
+
+Figure 1 
 ```{python}
 #----------------------------------------------------------------------------------------------------------------------------
 # exploratory data analysis: plot speech counts
@@ -182,6 +193,8 @@ plt.tight_layout()
 plt.show()
 #---------------------------------------------------------------------------------------------------------------------------
 ```
+
+Figure 1 delineates the distribution of speeches across the different presidents, revealing a notable underrepresentation of de Klerk and Motlanthe. This scarcity of speeches, and so a shortage of number of sentences as well, amongst only two out of the six presidents results in an imbalanced corpus. The subsequent training of any ML model on such disproportionate data potentially jeopardizes the overall predictive performance and generalizability thereof.  Consequently, it is strategically chosen to exclude de Klerk and Motlanthe, hence instead focusing the prediction task exclusively on Mbeki, Zuma (with ten speeches each), Mandela and Ramaphosa (with seven speeches each). 
 
 
 ```{python}
@@ -823,6 +836,16 @@ plt.show()
 
 
 
+
+
+<h4> Discussion and Conclusion </h4> 
+<hr> 
+
+
+<h4> References </h4> 
+<hr> 
+
+</div> 
 
 
 
